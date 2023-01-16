@@ -9,9 +9,9 @@ fs = 10;
 % SEEMS LIKE THIS CODE MATCHES OG CODE BETTER FOR LARGER ALPHA
 % BATTLE BETWEEN ISOTHERMAL AND THIS (?)
 % Symplectic integrator as a possible fix (?)
-a = 8.05;
-R = 8;
-r = 1;
+a = 13;
+R = 11;
+r = 3;
 c = sqrt(R^2 - r^2);
 myalpha = r/R;
 
@@ -79,7 +79,7 @@ p = exp(-gr); % nome (for periodicity)
 %% Initial conditions for vortices
 % Initial vortex positions in [-pi*c,pi*c]x[cgl,cgr]
 w1_0 = (1.6) + 1i*(4.4); % positive vortex
-w2_0 = (-11.6) + 1i*(-0.6); % negative vortex
+w2_0 = (0.6) + 1i*(2.6); % negative vortex
 
 % Vortex charges
 q1 = 1;
@@ -97,7 +97,7 @@ v2_0 = imag(w2_0);
 %% Integrate the equations of motion
 % Set total time and tolerances
 t0 = 0;
-tf = 100;
+tf = 500;
 timespan = [t0, tf];
 options = odeset('RelTol', 1e-13, 'AbsTol', 1e-13);
 
@@ -204,7 +204,3 @@ function dydx = odefcn(theta, phi, a, R, r)
   gamma = sqrt((a+r*cos(theta)).^2.*sin(phi).^2 + (R+r*cos(theta)).^2.*cos(phi).^2);
   dydx = -1i*(r/gamma);
 end
-
-
-
-
