@@ -100,11 +100,38 @@ W = [u1_0, u2_0, v1_0, v2_0];
 F =@(W) vortex_velocity_v2(0,[W(1), W(2), W(3), W(4)],0,N,q,r,a,R,c,p,cap,theta,Dginv,gr);
 
 % Compute the fixed point
-Wstar = fsolve(F,W)
+Wstar = fsolve(F,W);
+
+%% Jacobian matrix at fixed point
+% Compute Jacobian at fixed point
+J = myjacobian(F,Wstar);
+
+% Eigenvectors and eigenvalues
+[V, lambdas] = eig(J);
+
 
 %% Function definitions
 % RHS of nonlinear isothermal coords ODE
 function dydx = odefcn(theta, phi, a, R, r)
   gamma = sqrt((a+r*cos(theta)).^2.*sin(phi).^2 + (R+r*cos(theta)).^2.*cos(phi).^2);
   dydx = -1i*(r/gamma);
+end
+
+% Numerical Jacobian matrix
+% See (https://www.maths.lth.se/na/courses/FMN081/FMN081-06/lecture7.pdf)
+function J = myjacobian(func,x)
+    % Set numerical derivative parameters
+    N = length(x);
+    F_at_x = feval(func,x);
+    epsilon = 1E-10;
+
+    % Compute numerical derivative
+    xperturb = x;
+    %xperturb = x + epsilon;
+    J = zeros(N);
+    for i = 1:N
+        xperturb(i) = xperturb(i) + epsilon;
+        J(:,i) = (feval(func,xperturb) - F_at_x)/epsilon;
+        xperturb(i) = x(i);
+    end
 end
