@@ -76,8 +76,8 @@ p = exp(-gr); % nome (for periodicity)
 % Initial vortex positions in [-pi*c,pi*c]x[cgl,cgr]
 % [-pi*c,pi*c] = [-33.2475, 33.2475]
 % [cgl,cgr] = [-10.9479, 10.9479]
-w1_0 = (3) + 1i*(0); % positive vortex
-w2_0 = (-3) + 1i*(0); % negative vortex
+w1_0 = (0) + 1i*(5); % positive vortex
+w2_0 = (0) + 1i*(-5); % negative vortex
 
 % Vortex charges
 q1 = 1;
@@ -98,6 +98,9 @@ W = [u1_0, u2_0, v1_0, v2_0];
 %% Root-finding
 % Define the RHS
 F =@(W) vortex_velocity_v2(0,[W(1), W(2), W(3), W(4)],0,N,q,r,a,R,c,p,cap,theta,Dginv,gr);
+
+% Compute the fixed point
+Wstar = fsolve(F,W)
 
 %% Function definitions
 % RHS of nonlinear isothermal coords ODE
