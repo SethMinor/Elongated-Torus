@@ -97,14 +97,16 @@ v2_0 = imag(w2_0);
 t0 = 0;
 tf = 1000;
 timespan = [t0, tf];
-%options = odeset('RelTol', 1e-13, 'AbsTol', 1e-13);
-options = odeset('RelTol', 1e-13, 'AbsTol', 1e-13, 'Events', @EventsFcn);
+options = odeset('RelTol', 1e-13, 'AbsTol', 1e-13);
+%options = odeset('RelTol', 1e-13, 'AbsTol', 1e-13, 'Events', @EventsFcn);
 
 % Numerical integration using ode45 or ode15s
 y0 = [u1_0, u2_0, v1_0, v2_0];
 %[t,y] = ode15s('vortex_velocity_v2',timespan, y0, options, N, q, r, a, R, c, p, cap, theta, Dginv, gr);
 F =@(y) vortex_velocity_v2(0,y,0,N,q,r,a,R,c,p,cap,theta,Dginv,gr);
 %[T,Y,Te,Ye,Ie]=ode45(@(t,y) LorenzEqs(t,y,params),[0,tpoincare],IC,options2);
+
+[T,Y] = ode15s(@(t,y) vortex_velocity_v2(0,y,0,N,q,r,a,R,c,p,cap,theta,Dginv,gr),timespan, y0, options);
 
 
 
