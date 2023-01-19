@@ -75,7 +75,7 @@ p = exp(-gr); % nome (for periodicity)
 %% Initial conditions for vortices
 % Initial vortex positions in [-pi*c,pi*c]x[cgl,cgr]
 % [-pi*c,pi*c] = [-33.2475, 33.2475]
-% [cgl,cgr] = [-10.9479, 10.9479]
+% [cgl,cgr] = [-10.5830, 10.5830]
 w1_0 = (5.0) + 1i*(3.0); % positive vortex
 w2_0 = (4.0) + 1i*(-2.0); % negative vortex
 
@@ -97,8 +97,8 @@ v2_0 = imag(w2_0);
 t0 = 0;
 tf = 1000;
 timespan = [t0, tf];
-options = odeset('RelTol', 1e-13, 'AbsTol', 1e-13);
-%options = odeset('RelTol', 1e-13, 'AbsTol', 1e-13, 'Events', @EventsFcn);
+%options = odeset('RelTol', 1e-13, 'AbsTol', 1e-13);
+options = odeset('RelTol', 1e-13, 'AbsTol', 1e-13, 'Events', @EventsFcn);
 
 % Numerical integration using ode45 or ode15s
 y0 = [u1_0, u2_0, v1_0, v2_0];
@@ -106,9 +106,47 @@ y0 = [u1_0, u2_0, v1_0, v2_0];
 F =@(y) vortex_velocity_v2(0,y,0,N,q,r,a,R,c,p,cap,theta,Dginv,gr);
 %[T,Y,Te,Ye,Ie]=ode45(@(t,y) LorenzEqs(t,y,params),[0,tpoincare],IC,options2);
 
-[T,Y] = ode15s(@(t,y) vortex_velocity_v2(0,y,0,N,q,r,a,R,c,p,cap,theta,Dginv,gr),timespan, y0, options);
+[T,Y,Te,Ye,Ie] = ode15s(@(t,y) vortex_velocity_v2(0,y,0,N,q,r,a,R,c,p,cap,theta,Dginv,gr),timespan, y0, options);
 
+%% Change coordinates from numerical solution
+% Vortices in isothermal coordinates
+U = Y(:,1:N); % u-coords
+V = Y(:,(1+N):2*N); % v-coords
+W = U + 1i*V;
+% mod(...-pi, pi) (?)
 
+% Toroidal-poloidal coordinates
+Phi = U./c;
+Phi = unwrap(Phi); % reduce mod 2pi
+
+Theta = [theta(V(:,1)), theta(V(:,2))];
+Theta = unwrap(Theta);
+
+%% Plot integrated solution
+% Some nice RGB colores
+bluey = [0 0.4470 0.7410];
+orangu = [0.8500 0.3250 0.0980];
+
+figure (2)
+
+% Isothermal orbit
+subplot(2,1,1)
+plot(U,V)
+grid on
+xlabel('$u = $Re$(w)$','Interpreter','latex','FontSize',fs)
+ylabel('$v = $Im$(w)$','Interpreter','latex','FontSize',fs)
+title('Isothermal Coordinates','Interpreter','latex','FontSize',fs)
+
+% Toriodal-poloidal orbit
+subplot(2,1,2)
+plotwrapped(Phi(:,1),Theta(:,1),1, [-pi pi],[-pi pi], 0.05, bluey)
+hold on
+plotwrapped(Phi(:,2),Theta(:,2),1, [-pi pi],[-pi pi], 0.05, orangu)
+hold off
+xlabel('$\phi$','Interpreter','latex','FontSize',fs)
+ylabel('$\theta$','Interpreter','latex','FontSize',fs)
+title('Toroidal-Poloidal Coordinates','Interpreter','latex','FontSize',fs)
+xlim([-pi pi])
 
 %% Function definitions
 % RHS of nonlinear isothermal coords ODE
@@ -118,8 +156,17 @@ function dydx = odefcn(theta, phi, a, R, r)
 end
 
 % Poincare section slice
-function [position,isterminal,direction] = EventsFcn(y)
-  position = y(1); % The value that we want to be zero
+% UPDATE THIS BL WHEN R,r CHANGE
+function [position,isterminal,direction] = EventsFcn(~,y)
+  U = y(1:2);
+  %V = y(3:4);
+  R = 11;
+  r = 3;
+  c = sqrt(R^2-r^2);
+  Phi = U./c;
+  Phi = unwrap(Phi);
+  % Theta = ...
+  position = Phi(2) - pi;
   isterminal = 0;  % Halt integration 
   direction = 0;   % The zero can be approached from either direction
 end
