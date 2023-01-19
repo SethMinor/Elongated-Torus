@@ -116,10 +116,10 @@ W = U + 1i*V;
 
 % Toroidal-poloidal coordinates
 Phi = U./c;
-Phi = unwrap(Phi); % reduce mod 2pi
+%Phi = unwrap(Phi); % reduce mod 2pi
 
 Theta = [theta(V(:,1)), theta(V(:,2))];
-Theta = unwrap(Theta); 
+%Theta = unwrap(Theta); 
 
 % 3D Cartesian coordinates
 X = (a+r*cos(Theta)).*cos(Phi);
