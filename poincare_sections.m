@@ -76,8 +76,8 @@ p = exp(-gr); % nome (for periodicity)
 % Initial vortex positions in [-pi*c,pi*c]x[cgl,cgr]
 % [-pi*c,pi*c] = [-33.2475, 33.2475]
 % [cgl,cgr] = [-10.5830, 10.5830]
-w1_0 = (5.0) + 1i*(3.0); % positive vortex
-w2_0 = (4.0) + 1i*(-2.0); % negative vortex
+w1_0 = (0) + 1i*(2.0); % positive vortex
+w2_0 = (1) + 1i*(-2.0); % negative vortex
 
 % Vortex charges
 q1 = 1;
@@ -95,32 +95,29 @@ v2_0 = imag(w2_0);
 %% Compute Poincare sections
 % ode45 with events function
 t0 = 0;
-tf = 1000;
+tf = 2500;
 timespan = [t0, tf];
-%options = odeset('RelTol', 1e-13, 'AbsTol', 1e-13);
-options = odeset('RelTol', 1e-13, 'AbsTol', 1e-13, 'Events', @EventsFcn);
+options = odeset('RelTol', 1e-12, 'AbsTol', 1e-12, 'Events', @EventsFcn);
 
 % Numerical integration using ode45 or ode15s
 y0 = [u1_0, u2_0, v1_0, v2_0];
-%[t,y] = ode15s('vortex_velocity_v2',timespan, y0, options, N, q, r, a, R, c, p, cap, theta, Dginv, gr);
-F =@(y) vortex_velocity_v2(0,y,0,N,q,r,a,R,c,p,cap,theta,Dginv,gr);
-%[T,Y,Te,Ye,Ie]=ode45(@(t,y) LorenzEqs(t,y,params),[0,tpoincare],IC,options2);
-
-[T,Y,Te,Ye,Ie] = ode15s(@(t,y) vortex_velocity_v2(0,y,0,N,q,r,a,R,c,p,cap,theta,Dginv,gr),timespan, y0, options);
+[T,Y,Te,Ye,Ie] = ode15s(@(t,y) vortex_velocity_v2(0,y,0,N,q,r,a,R,c,p,cap,theta,Dginv,gr),...
+    timespan, y0, options);
 
 %% Change coordinates from numerical solution
 % Vortices in isothermal coordinates
 U = Y(:,1:N); % u-coords
+U = UVwrap(U, [-pi*c, pi*c]);
+
 V = Y(:,(1+N):2*N); % v-coords
+V = UVwrap(V, [c*gl, c*gr]);
+
+% Combined complex coordinate
 W = U + 1i*V;
-% mod(...-pi, pi) (?)
 
 % Toroidal-poloidal coordinates
 Phi = U./c;
-Phi = unwrap(Phi); % reduce mod 2pi
-
 Theta = [theta(V(:,1)), theta(V(:,2))];
-Theta = unwrap(Theta);
 
 %% Plot integrated solution
 % Some nice RGB colores
@@ -131,22 +128,42 @@ figure (2)
 
 % Isothermal orbit
 subplot(2,1,1)
-plot(U,V)
+plot(U,V,'.','MarkerSize',2)
 grid on
 xlabel('$u = $Re$(w)$','Interpreter','latex','FontSize',fs)
 ylabel('$v = $Im$(w)$','Interpreter','latex','FontSize',fs)
 title('Isothermal Coordinates','Interpreter','latex','FontSize',fs)
+xlim([-pi*c, pi*c])
+ylim([c*gl, c*gr])
 
 % Toriodal-poloidal orbit
 subplot(2,1,2)
-plotwrapped(Phi(:,1),Theta(:,1),1, [-pi pi],[-pi pi], 0.05, bluey)
+plotwrapped(Phi(:,1),Theta(:,1),1, [-pi, pi],[-pi, pi], 0.05, bluey)
 hold on
-plotwrapped(Phi(:,2),Theta(:,2),1, [-pi pi],[-pi pi], 0.05, orangu)
+plotwrapped(Phi(:,2),Theta(:,2),1, [-pi, pi],[-pi, pi], 0.05, orangu)
 hold off
 xlabel('$\phi$','Interpreter','latex','FontSize',fs)
 ylabel('$\theta$','Interpreter','latex','FontSize',fs)
 title('Toroidal-Poloidal Coordinates','Interpreter','latex','FontSize',fs)
-xlim([-pi pi])
+xlim([-pi, pi])
+ylim([-pi, pi])
+
+%% Plot Poincare section
+% Coordinates at Poincare crossings
+Ue = Ye(:,1:N); % u-coords
+Ue = UVwrap(Ue, [-pi*c, pi*c]);
+
+Ve = Ye(:,(1+N):2*N); % v-coords
+Ve = UVwrap(Ve, [c*gl, c*gr]);
+
+% Conversion to toroidal-poloidal coordinates
+Phi_e = Ue./c;
+Theta_e = [theta(Ve(:,1)), theta(Ve(:,2))];
+
+% Poincare section
+figure (3)
+plot(Phi_e(:,1), Phi_e(:,2),'.')
+hold on
 
 %% Function definitions
 % RHS of nonlinear isothermal coords ODE
@@ -158,15 +175,25 @@ end
 % Poincare section slice
 % UPDATE THIS BL WHEN R,r CHANGE
 function [position,isterminal,direction] = EventsFcn(~,y)
-  U = y(1:2);
-  %V = y(3:4);
+  % Torus parameters
   R = 11;
   r = 3;
   c = sqrt(R^2-r^2);
-  Phi = U./c;
-  Phi = unwrap(Phi);
-  % Theta = ...
-  position = Phi(2) - pi;
+  gr = 1.0345;
+  % Isothermal coordinates
+  %U = y(1:2);
+  %U = UVwrap(U, [-pi*c, pi*c]);
+  V = y(3:4);
+  V = UVwrap(V, [-c*gr, c*gr]);
+  % Toroidal-poloidal cooridnates
+  %Phi = U./c;
+  % Poincare section
+  position = V(1) + V(2);
   isterminal = 0;  % Halt integration 
   direction = 0;   % The zero can be approached from either direction
+end
+
+% Wrap U,V to interval
+function wrapped = UVwrap(array, interval)
+    wrapped = mod(array - interval(1), range(interval)) + interval(1);
 end
