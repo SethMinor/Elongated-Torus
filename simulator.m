@@ -9,7 +9,7 @@ fs = 10;
 % SEEMS LIKE THIS CODE MATCHES OG CODE BETTER FOR LARGER ALPHA
 % BATTLE BETWEEN ISOTHERMAL AND THIS (?)
 % Symplectic integrator as a possible fix (?)
-a = 12;
+a = 13;
 R = 11;
 r = 3;
 c = sqrt(R^2 - r^2);
@@ -79,8 +79,8 @@ p = exp(-gr); % nome (for periodicity)
 %% Initial conditions for vortices
 % Initial vortex positions in [-pi*c,pi*c]x[cgl,cgr]
 % [-pi*c,pi*c] = [-33.2475, 33.2475]
-% [cgl,cgr] = [-10.9479, 10.9479]
-w1_0 = (15.0) + 1i*(5.0); % positive vortex
+% [cgl,cgr] = [-10.5830, 10.5830]
+w1_0 = (15.5) + 1i*(5.0); % positive vortex
 w2_0 = (15.0) + 1i*(-4.0); % negative vortex
 
 % Vortex charges
@@ -111,15 +111,17 @@ y0 = [u1_0, u2_0, v1_0, v2_0];
 %% Change coordinates from numerical solution
 % Vortices in isothermal coordinates
 U = y(:,1:N); % u-coords
+U = UVwrap(U, [-pi*c, pi*c]);
+
 V = y(:,(1+N):2*N); % v-coords
+V = UVwrap(V, [c*gl, c*gr]);
+
+% Full complex coordinate
 W = U + 1i*V;
 
 % Toroidal-poloidal coordinates
 Phi = U./c;
-%Phi = unwrap(Phi); % reduce mod 2pi
-
 Theta = [theta(V(:,1)), theta(V(:,2))];
-%Theta = unwrap(Theta); 
 
 % 3D Cartesian coordinates
 X = (a+r*cos(Theta)).*cos(Phi);
@@ -140,17 +142,20 @@ grid on
 xlabel('$u = $Re$(w)$','Interpreter','latex','FontSize',fs)
 ylabel('$v = $Im$(w)$','Interpreter','latex','FontSize',fs)
 title('Isothermal Coordinates','Interpreter','latex','FontSize',fs)
+xlim([-pi*c, pi*c])
+ylim([c*gl, c*gr])
 
 % Toriodal-poloidal orbit
 subplot(2,1,2)
-plotwrapped(Phi(:,1),Theta(:,1),1, [-pi pi],[-pi pi], 0.05, bluey)
+plotwrapped(Phi(:,1),Theta(:,1),1, [-pi, pi],[-pi, pi], 0.05, bluey)
 hold on
-plotwrapped(Phi(:,2),Theta(:,2),1, [-pi pi],[-pi pi], 0.05, orangu)
+plotwrapped(Phi(:,2),Theta(:,2),1, [-pi, pi],[-pi, pi], 0.05, orangu)
 hold off
 xlabel('$\phi$','Interpreter','latex','FontSize',fs)
 ylabel('$\theta$','Interpreter','latex','FontSize',fs)
 title('Toroidal-Poloidal Coordinates','Interpreter','latex','FontSize',fs)
-xlim([-pi pi])
+xlim([-pi, pi])
+ylim([-pi, pi])
 
 % 3D Cartesian surface plot of orbits
 utorus = linspace(0,2*pi);
@@ -205,4 +210,9 @@ legend('Total, $H$','Classic','Curvature','Quantum','Interpreter','latex')
 function dydx = odefcn(theta, phi, a, R, r)
   gamma = sqrt((a+r*cos(theta)).^2.*sin(phi).^2 + (R+r*cos(theta)).^2.*cos(phi).^2);
   dydx = -1i*(r/gamma);
+end
+
+% Wrap U,V to interval
+function wrapped = UVwrap(array, interval)
+    wrapped = mod(array - interval(1), range(interval)) + interval(1);
 end
