@@ -74,10 +74,10 @@ p = exp(-gr); % nome (for periodicity)
 
 
 %% Giant for-loop over ICs
-for u1pert = -1:0.1:1
-    for u2pert = -2:0.1:2
-        for v1pert = -5:0.1:5
-            for v2pert = -1:0.1:1
+for u1pert = -6:0.1:6
+    for u2pert = -10:0.1:10
+        for v1pert = -5:0.1:0
+            for v2pert = 0:0.1:5
                 % Initial conditions for vortices
                 % Initial vortex positions in [-pi*c,pi*c]x[cgl,cgr]
                 % [-pi*c,pi*c] = [-33.2475, 33.2475]
