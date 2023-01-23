@@ -105,6 +105,7 @@ Z = conj(Z).*Z;
 surf(X,Y,Z)
 shading interp;
 colormap copper;
+axis equal;
 
 
 
