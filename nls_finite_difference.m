@@ -9,7 +9,7 @@ fs = 14;
 mu = 5;
 
 % Grid size (NxN)
-N = 50;
+N = 60;
 
 % Torus parameters
 a = 13;
@@ -78,8 +78,8 @@ p = exp(-gr); % nome (for periodicity)
 
 %% Initial conditions for wave function
 % Initial vortex positions in [-pi*c,pi*c]x[cgl,cgr]
-w1 = (12) + 1i*(2); % positive vortex
-w2 = (-12) + 1i*(-5); % negative vortex
+w1 = (0) + 1i*(5); % positive vortex
+w2 = (0) + 1i*(-5); % negative vortex
 
 % Complex flow potential
 F =@(w,w1,w2) log(jacobitheta1((w-w1)./(2*c),p,cap)./jacobitheta1((w-w2)./(2*c),p,cap))...
@@ -119,7 +119,7 @@ camlight
 %% Numerical integration
 % RK-4 for time
 dt = 0.01;
-tf = 0.1;
+tf = 1;
 N_time = floor(tf/dt);
 
 % RHS parameters
@@ -144,8 +144,29 @@ psi = seed; % Initialize wave function
 
 for i = 0:N_time
     % Plot time step
+    psi_temp = reshape(psi,[N,N]);
+    density = conj(psi_temp).*psi_temp;
+    surf(Utemp,Vtemp,density)
+    shading interp;
+    colormap copper;
+    axis equal;
+    view(0,90)
+    %camlight
+    title("$t=$ "+t,'Interpreter','latex','FontSize',fs)
+    hold on
+    pause(0.02)
+
     % Update using RK-4
+    k1 = RHS(psi,D2,lambda_vec);
+    k2 = RHS(psi + (dt/2)*k1,D2,lambda_vec);
+    k3 = RHS(psi + (dt/2)*k2,D2,lambda_vec);
+    k4 = RHS(psi + dt*k3,D2,lambda_vec);
+    psi = psi + (dt/6)*(k1 + 2*k2 + 2*k3 + k4);
+
+    % Update the time
+    t = t + dt;
 end
+hold off
 
 
 %% Helper functions
