@@ -6,13 +6,13 @@ clear, clc;
 fs = 14;
 
 % NLS density
-mu = 5;
+mu = 3;
 
 % Grid size (NxN)
-N = 60;
+N = 80;
 
 % Torus parameters
-a = 13;
+a = 11;
 R = 11;
 r = 3;
 c = sqrt(R^2 - r^2);
@@ -78,8 +78,8 @@ p = exp(-gr); % nome (for periodicity)
 
 %% Initial conditions for wave function
 % Initial vortex positions in [-pi*c,pi*c]x[cgl,cgr]
-w1 = (-10) + 1i*(2); % positive vortex
-w2 = (0) + 1i*(-2); % negative vortex
+w1 = (0) + 1i*(4); % positive vortex
+w2 = (0) + 1i*(-4); % negative vortex
 
 % Complex flow potential
 F =@(w,w1,w2) log(jacobitheta1((w-w1)./(2*c),p,cap)./jacobitheta1((w-w2)./(2*c),p,cap))...
@@ -109,8 +109,8 @@ figure (3)
 psi_0 = IC(Utemp+1i*Vtemp,w1,w2);
 Z = conj(psi_0).*psi_0;
 surf(Utemp,Vtemp,Z)
-%shading interp;
-colormap copper;
+shading interp;
+colormap gray;
 axis equal;
 camlight
 title('Initial Density')
@@ -120,8 +120,8 @@ title('Initial Density')
 
 %% Numerical integration
 % RK-4 for time
-dt = 0.05;
-tf = 10;
+dt = 0.07;
+tf = 30;
 N_time = floor(tf/dt);
 
 % RHS parameters
@@ -144,15 +144,14 @@ disp('Continue? Press ye olde key...')
 pause;
 
 % RK-4 for-loop
-figure (5)
 t = 0; % Initialize time
 psi = seed; % Initialize wave function
 
-hold on
 for i = 0:N_time
     % Plot time step
     psi_temp = reshape(psi,[N,N]);
     density = conj(psi_temp).*psi_temp;
+    figure (5)
     surf(Utemp,Vtemp,density)
     shading interp;
     colormap bone;
@@ -162,7 +161,7 @@ for i = 0:N_time
     title("$t=$ "+t,'Interpreter','latex','FontSize',fs)
     xlim([-pi*c,pi*c])
     ylim([c*gl,c*gr])
-    pause(0.01)
+    %pause(0.01)
 
     % Update using RK-4
     k1 = RHS(psi,D2,lambda_vec);
@@ -174,7 +173,6 @@ for i = 0:N_time
     % Update the time
     t = t + dt;
 end
-hold off
 
 
 %% Helper functions
