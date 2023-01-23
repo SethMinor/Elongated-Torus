@@ -6,10 +6,10 @@ clear, clc;
 fs = 14;
 
 % NLS density
-mu = 3;
+mu = 6;
 
 % Grid size (NxN)
-N = 80;
+N = 60;
 
 % Torus parameters
 a = 11;
@@ -120,8 +120,8 @@ title('Initial Density')
 
 %% Numerical integration
 % RK-4 for time
-dt = 0.07;
-tf = 30;
+dt = 0.1;
+tf = 0.2;
 N_time = floor(tf/dt);
 
 % RHS parameters
@@ -143,6 +143,10 @@ lambda_vec = reshape(lambda(Phi_temp,Theta_temp),[N^2,1]);
 disp('Continue? Press ye olde key...')
 pause;
 
+% Want to export images?
+export_bool = true;
+working_dir = 'C:\Users\sminor2848\Downloads\Elongated-Torus-main (1)\Elongated-Torus-main\pics\';
+
 % RK-4 for-loop
 t = 0; % Initialize time
 psi = seed; % Initialize wave function
@@ -162,6 +166,12 @@ for i = 0:N_time
     xlim([-pi*c,pi*c])
     ylim([c*gl,c*gr])
     %pause(0.01)
+
+    % Export images to folder
+    if export_bool == true
+        file_name = sprintf('PDE_%d.png', i);
+        exportgraphics(gcf,strcat(working_dir,file_name))
+    end
 
     % Update using RK-4
     k1 = RHS(psi,D2,lambda_vec);
