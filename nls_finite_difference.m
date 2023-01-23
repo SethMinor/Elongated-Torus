@@ -78,7 +78,7 @@ p = exp(-gr); % nome (for periodicity)
 
 %% Initial conditions for wave function
 % Initial vortex positions in [-pi*c,pi*c]x[cgl,cgr]
-w1 = (0) + 1i*(2); % positive vortex
+w1 = (-10) + 1i*(2); % positive vortex
 w2 = (0) + 1i*(-2); % negative vortex
 
 % Complex flow potential
@@ -120,7 +120,7 @@ title('Initial Density')
 
 %% Numerical integration
 % RK-4 for time
-dt = 0.01;
+dt = 0.05;
 tf = 10;
 N_time = floor(tf/dt);
 
@@ -155,11 +155,13 @@ for i = 0:N_time
     density = conj(psi_temp).*psi_temp;
     surf(Utemp,Vtemp,density)
     shading interp;
-    colormap copper;
+    colormap bone;
     axis equal;
     view(0,90)
     %camlight
     title("$t=$ "+t,'Interpreter','latex','FontSize',fs)
+    xlim([-pi*c,pi*c])
+    ylim([c*gl,c*gr])
     pause(0.01)
 
     % Update using RK-4
