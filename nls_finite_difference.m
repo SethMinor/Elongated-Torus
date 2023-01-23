@@ -6,10 +6,13 @@ clear, clc;
 fs = 14;
 
 % NLS density
-mu = 1;
+mu = 5;
+
+% Grid size (NxN)
+N = 50;
 
 % Torus parameters
-a = 11;
+a = 13;
 R = 11;
 r = 3;
 c = sqrt(R^2 - r^2);
@@ -87,27 +90,62 @@ phase =@(w,w1,w2) imag(F(w,w1,w2));
 
 % Create a contour plot of the phase
 figure (2)
-x = linspace(-c*pi,c*pi,500);
-y = linspace(c*gl,c*gr,500);
-[X,Y] = meshgrid(x,y);
-Z = phase(X+1i*Y,w1,w2);
-contour(X,Y,Z,50)
+Ugrid = linspace(-c*pi,c*pi,N);
+Vgrid = linspace(c*gl,c*gr,N);
+[Utemp,Vtemp] = meshgrid(Ugrid,Vgrid);
+Z = phase(Utemp+1i*Vtemp,w1,w2);
+contour(Utemp,Vtemp,Z,50)
+colormap hsv;
+axis equal;
 
 % Create initial wave function
-psi_0 =@(w,w1,w2) sqrt(mu)*exp(1i*phase(w,w1,w2))...
+IC =@(w,w1,w2) sqrt(mu)*exp(1i*phase(w,w1,w2))...
     .*tanh(sqrt(mu)*sqrt((real(w)-real(w1)).^2 + (imag(w)-imag(w1)).^2))...
     .*tanh(sqrt(mu)*sqrt((real(w)-real(w2)).^2 + (imag(w)-imag(w2)).^2));
 
 % Plot density of initial condition
 figure (3)
-Z = psi_0(X+1i*Y,w1,w2);
-Z = conj(Z).*Z;
-surf(X,Y,Z)
+psi_0 = IC(Utemp+1i*Vtemp,w1,w2);
+Z = conj(psi_0).*psi_0;
+surf(Utemp,Vtemp,Z)
 shading interp;
 colormap copper;
 axis equal;
+camlight
 
+% For plotting on el toroos:
+% https://www.mathworks.com/help/matlab/visualize/representing-a-matrix-as-a-surface.html
 
+%% Numerical integration
+% RK-4 for time
+dt = 0.01;
+tf = 0.1;
+N_time = floor(tf/dt);
+
+% RHS parameters
+D2 = Delta2d(N);
+
+% Local scale factor
+figure (4)
+[Phi_temp,Theta_temp] = meshgrid(phi(Ugrid),theta(Vgrid)');
+surf(Phi_temp,Theta_temp,lambda(Phi_temp,Theta_temp))
+title('Local scale factor')
+
+% Reshape initial condition array
+seed = reshape(psi_0',[N^2,1]);
+
+% Wrap lambda into vector
+lambda_vec = reshape(lambda(Phi_temp,Theta_temp)',[N^2,1]);
+
+% RK-4 for-loop
+figure (5)
+t = 0; % Initialize time
+psi = seed; % Initialize wave function
+
+for i = 0:N_time
+    % Plot time step
+    % Update using RK-4
+end
 
 
 %% Helper functions
@@ -168,12 +206,6 @@ function D2 = Delta2d(N)
 end
 
 % Return the RHS
-% LAMBDA(PSI) OR LAMBDA(UN,VN) KINDA THING (?)
-function F_of_psi = RHS(psi,D2,lambda)
-    F_of_psi = 1i*((D2*psi)./lambda(real(psi),imag(psi)) - (psi.^2).*conj(psi));
+function F_of_psi = RHS(psi,D2,lambda_vec)
+    F_of_psi = 1i*((D2*psi)./lambda_vec - (psi.^2).*conj(psi));
 end
-
-% Convert a numerical solution vector into a 2D grid
-% function wavefunction = psi2D(v,Nphi,Ntheta)
-%     wavefunction = reshape(v,[Nphi,Ntheta]);
-% end
