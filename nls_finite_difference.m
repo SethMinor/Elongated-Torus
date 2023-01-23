@@ -78,8 +78,8 @@ p = exp(-gr); % nome (for periodicity)
 
 %% Initial conditions for wave function
 % Initial vortex positions in [-pi*c,pi*c]x[cgl,cgr]
-w1 = (0) + 1i*(5); % positive vortex
-w2 = (0) + 1i*(-5); % negative vortex
+w1 = (0) + 1i*(2); % positive vortex
+w2 = (0) + 1i*(-2); % negative vortex
 
 % Complex flow potential
 F =@(w,w1,w2) log(jacobitheta1((w-w1)./(2*c),p,cap)./jacobitheta1((w-w2)./(2*c),p,cap))...
@@ -97,6 +97,7 @@ Z = phase(Utemp+1i*Vtemp,w1,w2);
 contour(Utemp,Vtemp,Z,50)
 colormap hsv;
 axis equal;
+title('Phase Contours')
 
 % Create initial wave function
 IC =@(w,w1,w2) sqrt(mu)*exp(1i*phase(w,w1,w2))...
@@ -108,10 +109,11 @@ figure (3)
 psi_0 = IC(Utemp+1i*Vtemp,w1,w2);
 Z = conj(psi_0).*psi_0;
 surf(Utemp,Vtemp,Z)
-shading interp;
+%shading interp;
 colormap copper;
 axis equal;
 camlight
+title('Initial Density')
 
 % For plotting on el toroos:
 % https://www.mathworks.com/help/matlab/visualize/representing-a-matrix-as-a-surface.html
@@ -119,7 +121,7 @@ camlight
 %% Numerical integration
 % RK-4 for time
 dt = 0.01;
-tf = 1;
+tf = 10;
 N_time = floor(tf/dt);
 
 % RHS parameters
@@ -132,16 +134,21 @@ surf(Phi_temp,Theta_temp,lambda(Phi_temp,Theta_temp))
 title('Local scale factor')
 
 % Reshape initial condition array
-seed = reshape(psi_0',[N^2,1]);
+seed = reshape(psi_0,[N^2,1]);
 
 % Wrap lambda into vector
-lambda_vec = reshape(lambda(Phi_temp,Theta_temp)',[N^2,1]);
+lambda_vec = reshape(lambda(Phi_temp,Theta_temp),[N^2,1]);
+
+% Confirm IC
+disp('Continue? Press ye olde key...')
+pause;
 
 % RK-4 for-loop
 figure (5)
 t = 0; % Initialize time
 psi = seed; % Initialize wave function
 
+hold on
 for i = 0:N_time
     % Plot time step
     psi_temp = reshape(psi,[N,N]);
@@ -153,8 +160,7 @@ for i = 0:N_time
     view(0,90)
     %camlight
     title("$t=$ "+t,'Interpreter','latex','FontSize',fs)
-    hold on
-    pause(0.02)
+    pause(0.01)
 
     % Update using RK-4
     k1 = RHS(psi,D2,lambda_vec);
