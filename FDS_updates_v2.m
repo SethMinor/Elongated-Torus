@@ -197,22 +197,30 @@ psi = seed; % Initialize wave function
 % Experiment
 % MULTIPLYING BY 4 FOR DISCRETE LAPLACIAN???
 % ALSO NOT DIVIDING BY h^2 ON BOTTOM???
+% D2 may not be correct? -2 -> (-2/hu^2 -2/hv^2)? and 1/hu^2 and 1/hv^2 on the stencil?
 hu = 2*pi*c/N;
 hv = 2*c*gr/N;
-D2 = Delta2d(N);
+D2 = Delta2d(N,hu,hv);
 
 figure (7)
+% Home-made matrix
 subplot(1,2,1)
 psi_vec = reshape(psi_0,[N^2,1]);
 lap1 = D2*psi_vec;
 lap1 = reshape(lap1, [N,N]);
 surf(Utemp, Vtemp, real(lap1))
 title('Homemade matrix')
+shading interp;
 
+% matlab del2
 subplot(1,2,2)
 lap2 = del2(psi,hu,hv);
 surf(Utemp, Vtemp, real(lap2))
 title('MatLab del2')
+shading interp;
+
+% Known soln?
+%subplot(1,3,3)
 
 % for i = 0:N_time
 %     % Plot time step
@@ -272,8 +280,8 @@ function wrapped = UVwrap(array, interval)
 end
 
 % Creates Delta1D matrices
-function D1 = Delta1d(N)
-    D1 = diag(-2*ones(N,1)) + diag(ones(N-1,1),1) + diag(ones(N-1,1),-1);
+function D1 = Delta1d(N,hu,hv)
+    D1 = diag(-2*(1/hu^2 + 1/hv^2)*ones(N,1)) + diag(ones(N-1,1),1) + diag(ones(N-1,1),-1);
     D1(end,1) = 1;
     D1(1,end) = 1;
 end
@@ -301,11 +309,11 @@ function PlacedI = PlaceI(N)
 end
 
 % Returns the Delta2D matrix
-function D2 = Delta2d(N)
+function D2 = Delta2d(N,hu,hv)
     % Add the Delta1D blocks that run down the diagonal
     Block = {0};
     for m = 1:N
-        Block{m} = Delta1d(N);
+        Block{m} = Delta1d(N,hu,hv);
     end
     D2 = blkdiag(Block{1:end});
 
