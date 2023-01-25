@@ -6,7 +6,7 @@ clear, clc;
 fs = 14;
 
 % NLS density
-mu = 6;
+mu = 5;
 
 % Grid size (NxN)
 N = 60;
@@ -19,13 +19,14 @@ c = sqrt(R^2 - r^2);
 myalpha = r/R;
 
 %% Solving for isothermal coordinates
+% Need this to get nome
 % Boundary condition
 phi_0 = 0;
 
 % Numerical integration using ode45
 theta_span = [0, pi];
 options = odeset('RelTol', 3e-14, 'AbsTol', 3e-14);
-[theta_raw,phi_raw] = ode15s(@(theta,phi) odefcn(theta,phi,a,R,r), theta_span, phi_0, options);
+[theta_raw, phi_raw] = ode15s(@(theta,phi) odefcn(theta,phi,a,R,r), theta_span, phi_0, options);
 
 % Give these hosses odd symmetry 
 theta_raw = [-flip(theta_raw(2:end)); theta_raw];
@@ -51,6 +52,19 @@ legend('Re$[f(\theta)]$','Im$[f(\theta)]$','$-v_0/c$','Interpreter','latex','Fon
 vhelper = fit(theta_raw, imag(phi_raw), 'cubicinterp');
 u =@(phi) c*phi;
 v =@(theta) -c*vhelper(theta);
+
+% Plot to verify that 'v' function looks good
+figure (2)
+plot(theta_raw, v(theta_raw))
+hold on
+plot(theta_raw, v0(theta_raw),'--k')
+hold off
+grid on
+
+title('Computed $v$ versus known $v_0$','Interpreter','latex','FontSize', fs+2)
+xlabel('$\theta$','Interpreter','latex','FontSize', fs)
+ylabel('$v(\theta)$','Interpreter','latex','FontSize', fs)
+legend('$v$','$v_0$','Interpreter','latex','FontSize', fs)
 
 % Defining the (u,v) to (phi,theta) map
 ginv = fit(imag(phi_raw), theta_raw, 'cubicinterp');
@@ -89,15 +103,16 @@ F =@(w,w1,w2) log(jacobitheta1((w-w1)./(2*c),p,cap)./jacobitheta1((w-w2)./(2*c),
 phase =@(w,w1,w2) imag(F(w,w1,w2));
 
 % Create a contour plot of the phase
-figure (2)
 Ugrid = linspace(-c*pi,c*pi,N);
 Vgrid = linspace(c*gl,c*gr,N);
 [Utemp,Vtemp] = meshgrid(Ugrid,Vgrid);
 Z = phase(Utemp+1i*Vtemp,w1,w2);
+
+figure (3)
 contour(Utemp,Vtemp,Z,50)
 colormap hsv;
 axis equal;
-title('Phase Contours')
+title('Initial Phase Contours')
 
 % Create initial wave function
 IC =@(w,w1,w2) sqrt(mu)*exp(1i*phase(w,w1,w2))...
@@ -105,7 +120,7 @@ IC =@(w,w1,w2) sqrt(mu)*exp(1i*phase(w,w1,w2))...
     .*tanh(sqrt(mu)*sqrt((real(w)-real(w2)).^2 + (imag(w)-imag(w2)).^2));
 
 % Plot density of initial condition
-figure (3)
+figure (4)
 psi_0 = IC(Utemp+1i*Vtemp,w1,w2);
 Z = conj(psi_0).*psi_0;
 surf(Utemp,Vtemp,Z)
@@ -120,45 +135,61 @@ title('Initial Density')
 
 %% Numerical integration
 % RK-4 for time
-dt = 0.1;
-tf = 0.2;
+dt = 0.05;
+tf = 10;
 N_time = floor(tf/dt);
 
 % RHS parameters
 D2 = Delta2d(N);
 
 % Local scale factor
-figure (4)
-[Phi_temp,Theta_temp] = meshgrid(phi(Ugrid),theta(Vgrid)');
-surf(Phi_temp,Theta_temp,lambda(Phi_temp,Theta_temp))
-title('Local scale factor')
+figure (5)
+subplot(1,3,1)
+[Phi_temp, Theta_temp] = meshgrid(phi(Ugrid),theta(Vgrid)');
+surf(Phi_temp, Theta_temp, lambda(Phi_temp,Theta_temp))
+title('Local scale factor, \Lambda')
+xlabel('\phi')
+ylabel('\theta')
+view([0,90])
+
+subplot(1,3,2)
+surf(Utemp, Vtemp, lambda(Phi_temp,Theta_temp))
+title('\Lambda (isothermal)')
+xlabel('u')
+ylabel('v')
+view([0,90])
+
+subplot(1,3,3)
+Zlambda = c./(R - r.*cos(Vtemp./r));
+surf(Utemp, Vtemp, Zlambda)
+title('\Lambda (known)')
+xlabel('u')
+ylabel('v')
+view([0,90])
 
 % Reshape initial condition array
 seed = reshape(psi_0,[N^2,1]);
 
-% Wrap lambda into vector
+% Wrap spatially-varying Lambda into vector
 lambda_vec = reshape(lambda(Phi_temp,Theta_temp),[N^2,1]);
 
 % Confirm IC
 disp('Continue? Press ye olde key...')
 pause;
 
-% Want to export images?
-export_bool = true;
-working_dir = 'C:\Users\sminor2848\Downloads\Elongated-Torus-main (1)\Elongated-Torus-main\pics\';
-
 % RK-4 for-loop
+figure (5)
 t = 0; % Initialize time
 psi = seed; % Initialize wave function
 
+hold on
 for i = 0:N_time
     % Plot time step
     psi_temp = reshape(psi,[N,N]);
     density = conj(psi_temp).*psi_temp;
-    figure (5)
     surf(Utemp,Vtemp,density)
     shading interp;
-    colormap bone;
+    colormap gray;
     axis equal;
     view(0,90)
     %camlight
@@ -166,12 +197,9 @@ for i = 0:N_time
     xlim([-pi*c,pi*c])
     ylim([c*gl,c*gr])
     %pause(0.01)
-
-    % Export images to folder
-    if export_bool == true
-        file_name = sprintf('PDE_%d.png', i);
-        exportgraphics(gcf,strcat(working_dir,file_name))
-    end
+    %contour(Utemp,Vtemp,phase(psi_temp,w1,w2),10)
+    %colormap hsv;
+    %axis equal;
 
     % Update using RK-4
     k1 = RHS(psi,D2,lambda_vec);
@@ -183,6 +211,7 @@ for i = 0:N_time
     % Update the time
     t = t + dt;
 end
+hold off
 
 
 %% Helper functions
@@ -193,6 +222,7 @@ function dydx = odefcn(theta, phi, a, R, r)
 end
 
 % Wrap U,V to interval
+% IS THIS NECESSARY?
 function wrapped = UVwrap(array, interval)
     wrapped = mod(array - interval(1), range(interval)) + interval(1);
 end
