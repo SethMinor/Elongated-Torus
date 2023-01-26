@@ -6,10 +6,10 @@ clear, clc;
 fs = 14;
 
 % NLS density
-mu = 0.1;
+mu = 3;
 
 % Grid size (NxN)
-N = 140;
+N = 250;
 
 % Torus parameters
 a = 11;
@@ -53,19 +53,6 @@ vhelper = fit(theta_raw, imag(phi_raw), 'cubicinterp');
 u =@(phi) c*phi;
 v =@(theta) -c*vhelper(theta);
 
-% Plot to verify that 'v' function looks good
-figure (2)
-plot(theta_raw, v(theta_raw))
-hold on
-plot(theta_raw, v0(theta_raw),'--k')
-hold off
-grid on
-
-title('Computed $v$ versus known $v_0$','Interpreter','latex','FontSize', fs+2)
-xlabel('$\theta$','Interpreter','latex','FontSize', fs)
-ylabel('$v(\theta)$','Interpreter','latex','FontSize', fs)
-legend('$v$','$v_0$','Interpreter','latex','FontSize', fs)
-
 % Defining the (u,v) to (phi,theta) map
 ginv = fit(imag(phi_raw), theta_raw, 'cubicinterp');
 phi =@(u) u/c;
@@ -103,8 +90,10 @@ F =@(w,w1,w2) log(jacobitheta1((w-w1)./(2*c),p,cap)./jacobitheta1((w-w2)./(2*c),
 phase =@(w,w1,w2) imag(F(w,w1,w2));
 
 % Create a contour plot of the phase
-Ugrid = linspace(-c*pi,c*pi,N);
-Vgrid = linspace(c*gl,c*gr,N);
+du = 2*pi*c/N;
+dv = 2*c*gr/N;
+Ugrid = linspace(-c*pi,c*pi - du,N);
+Vgrid = linspace(c*gl,c*gr - dv,N);
 [Utemp,Vtemp] = meshgrid(Ugrid,Vgrid);
 Z = phase(Utemp+1i*Vtemp,w1,w2);
 
@@ -135,8 +124,8 @@ title('Initial Density')
 
 %% Numerical integration
 % RK-4 for time
-dt = 0.005;
-tf = 100;
+dt = 0.0005;
+tf = 1;
 N_time = floor(tf/dt);
 
 % Local scale factor
@@ -144,7 +133,7 @@ figure (5)
 subplot(1,2,1)
 [Phi_temp, Theta_temp] = meshgrid(phi(Ugrid),theta(Vgrid)');
 surf(Phi_temp, Theta_temp, lambda(Phi_temp,Theta_temp))
-title('Local scale factor, \Lambda')
+title('\Lambda(\phi,\theta)')
 xlabel('\phi')
 ylabel('\theta')
 view([0,90])
@@ -153,7 +142,7 @@ colormap default;
 
 subplot(1,2,2)
 surf(Utemp, Vtemp, lambda(Phi_temp,Theta_temp))
-title('\Lambda (isothermal)')
+title('\Lambda(u,v)')
 xlabel('u')
 ylabel('v')
 view([0,90])
@@ -163,25 +152,36 @@ colormap default;
 % Reshape initial condition array
 seed = psi_0;
 
-% Wrap spatially-varying Lambda into vector
+% Define spatially-varying Lambda as matrix
 L = lambda(Phi_temp,Theta_temp);
-
-% Confirm IC
-disp('Continue? Press ye olde enter key...')
-pause;
 
 % Want to export images?
 export_bool = true;
 working_dir = 'C:\Users\sminor2848\Downloads\Elongated-Torus-main\Elongated-Torus-main\pics\';
 
 % RK-4 for-loop
-figure (6)
 t = 0; % Initialize time
 psi = seed; % Initialize wave function
 
-% Discretization parameters
-hu = 2*pi*c/N;
-hv = 2*c*gr/N;
+% Experimenting with Laplacian
+% figure (6)
+% subplot(1,2,1)
+% surf(Utemp, Vtemp, real(4*del2(psi, du, dv)))
+% shading interp;
+% camlight
+% 
+% subplot(1,2,2)
+% Diesel = -2*(1/(du^2) + 1/(dv^2))*psi ...
+%     + (1/(du^2))*( circshift(psi,1,2) + circshift(psi,-1,2) )...
+%     + (1/(dv^2))*( circshift(psi,1,1) + circshift(psi,-1,1) );
+% surf(Utemp, Vtemp, real(Diesel))
+% shading interp;
+% camlight
+
+% Confirm IC
+figure (6)
+disp('Continue? Press ye olde enter key...')
+pause;
 
 for i = 0:N_time
     % Plot time step
@@ -197,28 +197,29 @@ for i = 0:N_time
     title("$t=$ "+t+", $M=$ "+mass,'Interpreter','latex','FontSize',fs)
     xlim([-pi*c,pi*c])
     ylim([c*gl,c*gr])
-    %pause(0.01)
+    pause(0.01)
     %contour(Utemp,Vtemp,phase(psi,w1,w2),10)
     %colormap hsv;
     %axis equal;
 
     % Export images to folder
-    if export_bool == true
-        file_name = sprintf('PDE_%d.png', i);
-        exportgraphics(gcf,strcat(working_dir,file_name));
-    end
+%     if export_bool == true
+%         file_name = sprintf('PDE_%d.png', i);
+%         exportgraphics(gcf,strcat(working_dir,file_name));
+%     end
     
     tic;
-    k1 = RHS(psi, L, hu, hv);
-    k2 = RHS(psi + (dt/2)*k1, L, hu, hv);
-    k3 = RHS(psi + (dt/2)*k2, L, hu, hv);
-    k4 = RHS(psi + dt*k3, L, hu, hv);
+    k1 = RHS(psi, L, du, dv);
+    k2 = RHS(psi + (dt/2)*k1, L, du, dv);
+    k3 = RHS(psi + (dt/2)*k2, L, du, dv);
+    k4 = RHS(psi + dt*k3, L, du, dv);
     psi = psi + (dt/6)*(k1 + 2*k2 + 2*k3 + k4);
     toc;
 
     % Enforce periodic BCs?
-    psi(N,:) = psi(1,:);
-    psi(:,N) = psi(:,1);
+    % Not with circshift in play?
+    %psi(N,:) = psi(1,:);
+    %psi(:,N) = psi(:,1);
 
     % Update the time
     t = t + dt;
@@ -239,6 +240,12 @@ end
 % end
 
 % Return the RHS
-function F_of_psi = RHS(psi, L, hu, hv)
-    F_of_psi = 1i.*(2*del2(psi, hu, hv)./L - (abs(psi).^2).*psi);
+function F_of_psi = RHS(psi, L, du, dv)
+    %F_of_psi = 1i.*(2*del2(psi, du, dv)./L - (abs(psi).^2).*psi);
+
+    % Periodic BCs w/ circshift?
+    F_of_psi = (1i/2)*(-2*(1/(du^2) + 1/(dv^2))*psi ...
+    + (1/(du^2))*( circshift(psi,1,2) + circshift(psi,-1,2) )...
+    + (1/(dv^2))*( circshift(psi,1,1) + circshift(psi,-1,1) ))./L ...
+    - 1i*(abs(psi).^2).*psi;
 end
