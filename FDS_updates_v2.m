@@ -6,13 +6,13 @@ clear, clc;
 fs = 14;
 
 % NLS density
-mu = 0.5;
+mu = 3;
 
 % Grid size (NxN)
-N = 110;
+N = 50;
 
 % Torus parameters
-a = 13;
+a = 11;
 R = 11;
 r = 3;
 c = sqrt(R^2 - r^2);
@@ -136,7 +136,7 @@ title('Initial Density')
 %% Numerical integration
 % RK-4 for time
 dt = 0.01;
-tf = 1;
+tf = 100;
 N_time = floor(tf/dt);
 
 % Local scale factor
@@ -186,13 +186,15 @@ hv = 2*c*gr/N;
 for i = 0:N_time
     % Plot time step
     density = conj(psi).*psi;
+    mass = sum(density,'all');
     surf(Utemp,Vtemp,density)
     shading interp;
     colormap gray;
     axis equal;
     view(0,90)
+    colorbar
     %camlight
-    title("$t=$ "+t,'Interpreter','latex','FontSize',fs)
+    title("$t=$ "+t+", $M=$ "+mass,'Interpreter','latex','FontSize',fs)
     xlim([-pi*c,pi*c])
     ylim([c*gl,c*gr])
     %pause(0.01)
@@ -213,6 +215,11 @@ for i = 0:N_time
     k4 = RHS(psi + dt*k3, L, hu, hv);
     psi = psi + (dt/6)*(k1 + 2*k2 + 2*k3 + k4);
     toc;
+    %psi = psi + dt*RHS(psi, L, hu, hv);
+
+    % Enforce periodic BCs?
+    psi(N,:) = psi(1,:);
+    psi(:,N) = psi(:,1);
 
     % Update the time
     t = t + dt;
@@ -234,5 +241,5 @@ end
 
 % Return the RHS
 function F_of_psi = RHS(psi, L, hu, hv)
-    F_of_psi = 1i.*(4*del2(psi, hu, hv)./L - (psi.^2).*conj(psi));
+    F_of_psi = 1i.*(4*del2(psi, hu, hv)./L - (abs(psi).^2).*psi);
 end
