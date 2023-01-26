@@ -6,10 +6,10 @@ clear, clc;
 fs = 14;
 
 % NLS density
-mu = 3;
+mu = 0.1;
 
 % Grid size (NxN)
-N = 50;
+N = 140;
 
 % Torus parameters
 a = 11;
@@ -92,8 +92,8 @@ p = exp(-gr); % nome (for periodicity)
 
 %% Initial conditions for wave function
 % Initial vortex positions in [-pi*c,pi*c]x[cgl,cgr]
-w1 = (0) + 1i*(4); % positive vortex
-w2 = (0) + 1i*(-4); % negative vortex
+w1 = (0) + 1i*(2); % positive vortex
+w2 = (3) + 1i*(-1); % negative vortex
 
 % Complex flow potential
 F =@(w,w1,w2) log(jacobitheta1((w-w1)./(2*c),p,cap)./jacobitheta1((w-w2)./(2*c),p,cap))...
@@ -135,7 +135,7 @@ title('Initial Density')
 
 %% Numerical integration
 % RK-4 for time
-dt = 0.01;
+dt = 0.005;
 tf = 100;
 N_time = floor(tf/dt);
 
@@ -185,8 +185,8 @@ hv = 2*c*gr/N;
 
 for i = 0:N_time
     % Plot time step
-    density = conj(psi).*psi;
-    mass = sum(density,'all');
+    density = abs(psi).^2;
+    mass = sum(sum(abs(psi).^2));
     surf(Utemp,Vtemp,density)
     shading interp;
     colormap gray;
@@ -205,7 +205,7 @@ for i = 0:N_time
     % Export images to folder
     if export_bool == true
         file_name = sprintf('PDE_%d.png', i);
-        exportgraphics(gcf,strcat(working_dir,file_name))
+        exportgraphics(gcf,strcat(working_dir,file_name));
     end
     
     tic;
@@ -215,7 +215,6 @@ for i = 0:N_time
     k4 = RHS(psi + dt*k3, L, hu, hv);
     psi = psi + (dt/6)*(k1 + 2*k2 + 2*k3 + k4);
     toc;
-    %psi = psi + dt*RHS(psi, L, hu, hv);
 
     % Enforce periodic BCs?
     psi(N,:) = psi(1,:);
@@ -241,5 +240,5 @@ end
 
 % Return the RHS
 function F_of_psi = RHS(psi, L, hu, hv)
-    F_of_psi = 1i.*(4*del2(psi, hu, hv)./L - (abs(psi).^2).*psi);
+    F_of_psi = 1i.*(2*del2(psi, hu, hv)./L - (abs(psi).^2).*psi);
 end
