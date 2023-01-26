@@ -6,13 +6,13 @@ clear, clc;
 fs = 14;
 
 % NLS density
-mu = 3;
+mu = 0.5;
 
 % Grid size (NxN)
 N = 110;
 
 % Torus parameters
-a = 11;
+a = 13;
 R = 11;
 r = 3;
 c = sqrt(R^2 - r^2);
@@ -135,16 +135,13 @@ title('Initial Density')
 
 %% Numerical integration
 % RK-4 for time
-dt = 0.05;
+dt = 0.01;
 tf = 1;
 N_time = floor(tf/dt);
 
-% RHS parameters
-%D2 = Delta2d(N);
-
 % Local scale factor
 figure (5)
-subplot(1,3,1)
+subplot(1,2,1)
 [Phi_temp, Theta_temp] = meshgrid(phi(Ugrid),theta(Vgrid)');
 surf(Phi_temp, Theta_temp, lambda(Phi_temp,Theta_temp))
 title('Local scale factor, \Lambda')
@@ -154,7 +151,7 @@ view([0,90])
 shading interp;
 colormap default;
 
-subplot(1,3,2)
+subplot(1,2,2)
 surf(Utemp, Vtemp, lambda(Phi_temp,Theta_temp))
 title('\Lambda (isothermal)')
 xlabel('u')
@@ -163,107 +160,63 @@ view([0,90])
 shading interp;
 colormap default;
 
-subplot(1,3,3)
-Zlambda = c./(R - r.*cos(Vtemp./r));
-surf(Utemp, Vtemp, Zlambda)
-title('\Lambda (known)')
-xlabel('u')
-ylabel('v')
-view([0,90])
-shading interp;
-colormap default;
-
 % Reshape initial condition array
-%seed = reshape(psi_0,[N^2,1]);
 seed = psi_0;
 
 % Wrap spatially-varying Lambda into vector
-%lambda_vec = reshape(lambda(Phi_temp,Theta_temp),[N^2,1]);
-lambda_vec = lambda(Phi_temp,Theta_temp);
+L = lambda(Phi_temp,Theta_temp);
 
 % Confirm IC
-%disp('Continue? Press ye olde key...')
-%pause;
+disp('Continue? Press ye olde enter key...')
+pause;
 
 % Want to export images?
 export_bool = true;
 working_dir = 'C:\Users\sminor2848\Downloads\Elongated-Torus-main\Elongated-Torus-main\pics\';
 
 % RK-4 for-loop
-%figure (6)
+figure (6)
 t = 0; % Initialize time
 psi = seed; % Initialize wave function
 
-% Experiment
-% MULTIPLYING BY 4 FOR DISCRETE LAPLACIAN???
-% ALSO NOT DIVIDING BY h^2 ON BOTTOM???
-% D2 may not be correct? -2 -> (-2/hu^2 -2/hv^2)? and 1/hu^2 and 1/hv^2 on the stencil?
+% Discretization parameters
 hu = 2*pi*c/N;
 hv = 2*c*gr/N;
-D2 = Delta2d(N,hu,hv);
 
-figure (7)
-% Home-made matrix
-subplot(1,2,1)
-psi_vec = reshape(psi_0,[N^2,1]);
-lap1 = D2*psi_vec;
-lap1 = reshape(lap1, [N,N]);
-surf(Utemp, Vtemp, real(lap1))
-title('Homemade matrix')
-shading interp;
+for i = 0:N_time
+    % Plot time step
+    density = conj(psi).*psi;
+    surf(Utemp,Vtemp,density)
+    shading interp;
+    colormap gray;
+    axis equal;
+    view(0,90)
+    %camlight
+    title("$t=$ "+t,'Interpreter','latex','FontSize',fs)
+    xlim([-pi*c,pi*c])
+    ylim([c*gl,c*gr])
+    %pause(0.01)
+    %contour(Utemp,Vtemp,phase(psi,w1,w2),10)
+    %colormap hsv;
+    %axis equal;
 
-% matlab del2
-subplot(1,2,2)
-lap2 = del2(psi,hu,hv);
-surf(Utemp, Vtemp, real(lap2))
-title('MatLab del2')
-shading interp;
+    % Export images to folder
+    if export_bool == true
+        file_name = sprintf('PDE_%d.png', i);
+        exportgraphics(gcf,strcat(working_dir,file_name))
+    end
+    
+    tic;
+    k1 = RHS(psi, L, hu, hv);
+    k2 = RHS(psi + (dt/2)*k1, L, hu, hv);
+    k3 = RHS(psi + (dt/2)*k2, L, hu, hv);
+    k4 = RHS(psi + dt*k3, L, hu, hv);
+    psi = psi + (dt/6)*(k1 + 2*k2 + 2*k3 + k4);
+    toc;
 
-% Known soln?
-%subplot(1,3,3)
-
-% for i = 0:N_time
-%     % Plot time step
-%     %psi_temp = reshape(psi,[N,N]);
-%     psi_temp = psi;
-%     density = conj(psi_temp).*psi_temp;
-%     surf(Utemp,Vtemp,abs(density))
-%     shading interp;
-%     colormap gray;
-%     axis equal;
-%     view(0,90)
-%     %camlight
-%     title("$t=$ "+t,'Interpreter','latex','FontSize',fs)
-%     xlim([-pi*c,pi*c])
-%     ylim([c*gl,c*gr])
-%     %pause(0.01)
-%     %contour(Utemp,Vtemp,phase(psi_temp,w1,w2),10)
-%     %colormap hsv;
-%     %axis equal;
-% 
-%     % Export images to folder
-%     if export_bool == true
-%         file_name = sprintf('PDE_%d.png', i);
-%         exportgraphics(gcf,strcat(working_dir,file_name))
-%     end
-%     
-%     tic;
-%     % Update using RK-4
-% %     k1 = RHS(psi,D2,lambda_vec);
-% %     k2 = RHS(psi + (dt/2)*k1,D2,lambda_vec);
-% %     k3 = RHS(psi + (dt/2)*k2,D2,lambda_vec);
-% %     k4 = RHS(psi + dt*k3,D2,lambda_vec);
-% %     psi = psi + (dt/6)*(k1 + 2*k2 + 2*k3 + k4);
-%     k1 = RHS(psi,lambda_vec,hu,hv);
-%     k2 = RHS(psi + (dt/2)*k1,lambda_vec,hu,hv);
-%     k3 = RHS(psi + (dt/2)*k2,lambda_vec,hu,hv);
-%     k4 = RHS(psi + dt*k3,lambda_vec,hu,hv);
-%     psi = psi + (dt/6)*(k1 + 2*k2 + 2*k3 + k4);
-%     toc;
-% 
-%     % Update the time
-%     t = t + dt;
-% end
+    % Update the time
+    t = t + dt;
+end
 
 
 %% Helper functions
@@ -273,62 +226,13 @@ function dydx = odefcn(theta, phi, a, R, r)
   dydx = -1i*(r/gamma);
 end
 
-% Wrap U,V to interval
-% IS THIS NECESSARY?
-function wrapped = UVwrap(array, interval)
-    wrapped = mod(array - interval(1), range(interval)) + interval(1);
-end
-
-% Creates Delta1D matrices
-function D1 = Delta1d(N,hu,hv)
-    D1 = diag(-2*(1/hu^2 + 1/hv^2)*ones(N,1)) + diag(ones(N-1,1),1) + diag(ones(N-1,1),-1);
-    D1(end,1) = 1;
-    D1(1,end) = 1;
-end
-
-% Places the Iu and Id matrices in Delta2d
-function PlacedI = PlaceI(N)
-    % Create the upper I-matrix portion
-    IuBlock = {0};
-    for m = 1:N
-        IuBlock{m} = eye(N);
-    end
-    IuBlock = blkdiag(IuBlock{1:end});
-    IuBlock = circshift(IuBlock,N,2);
-
-    % Create the lower I-matrix portion
-    IdBlock = {0};
-    for m = 1:N
-        IdBlock{m} = eye(N);
-    end
-    IdBlock = blkdiag(IdBlock{1:end});
-    IdBlock = circshift(IdBlock,N,2)';
-
-    % Return the combined blocks
-    PlacedI = IuBlock + IdBlock;
-end
-
-% Returns the Delta2D matrix
-function D2 = Delta2d(N,hu,hv)
-    % Add the Delta1D blocks that run down the diagonal
-    Block = {0};
-    for m = 1:N
-        Block{m} = Delta1d(N,hu,hv);
-    end
-    D2 = blkdiag(Block{1:end});
-
-    % Add the Iu and Id blocks on the off-diagonals
-    PlacedI = PlaceI(N);
-
-    % Deliver the final spicy meatball
-    D2 = D2 + PlacedI;
-end
+% % Wrap U,V to interval
+% % IS THIS NECESSARY?
+% function wrapped = UVwrap(array, interval)
+%     wrapped = mod(array - interval(1), range(interval)) + interval(1);
+% end
 
 % Return the RHS
-function F_of_psi = RHS(psi,lambda_vec,hu,hv)
-    % 'del2' command for speedup?
-    % or 'circshifts'?
-    %F_of_psi = 1i*((D2*psi)./lambda_vec - (psi.^2).*conj(psi));
-    % Possible speed-up:
-    F_of_psi = 1i*(4*del2(psi,hu,hv)./lambda_vec - (psi.^2).*conj(psi));
+function F_of_psi = RHS(psi, L, hu, hv)
+    F_of_psi = 1i.*(4*del2(psi, hu, hv)./L - (psi.^2).*conj(psi));
 end
