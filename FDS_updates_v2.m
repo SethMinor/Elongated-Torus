@@ -127,7 +127,7 @@ title('Initial Density')
 % CFL is something like dt < (dx)^2/sqrt(2) for 2D
 dt = 0.0005;
 %dt = 0.001;
-tf = 3;
+tf = 1000;
 N_time = floor(tf/dt);
 
 % Local scale factor
