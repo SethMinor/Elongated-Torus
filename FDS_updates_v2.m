@@ -125,9 +125,9 @@ title('Initial Density')
 %% Numerical integration
 % RK-4 for time
 % CFL is something like dt < (dx)^2/sqrt(2) for 2D
-%dt = 0.0005;
-dt = 0.001;
-tf = 1;
+dt = 0.0005;
+%dt = 0.001;
+tf = 3;
 N_time = floor(tf/dt);
 
 % Local scale factor
@@ -184,16 +184,21 @@ psi = seed; % Initialize wave function
 % Confirm IC
 disp('Continue? Press ye olde enter key...')
 pause;
+plot_counter = 0;
+
+% Initialize mass history
+mass = [];
 
 for i = 0:N_time
-    % Plot every 0.1ish seconds
-    if mod(i,100)==0
+    % Plot every 0.5ish seconds
+    if mod(i,1000) == 0
+        plot_counter = plot_counter + 1;
         figure (6)
         disp('yee')
         % Plot time step
         density = conj(psi).*psi;
         % Possibly a different mass formula due to curvature?
-        mass = sum(sum(conj(psi).*psi));
+        mass(plot_counter) = sum(sum(conj(psi).*psi));
         surf(Utemp,Vtemp,density)
         shading interp;
         colormap gray;
@@ -201,14 +206,14 @@ for i = 0:N_time
         view(0,90)
         colorbar
         %camlight
-        title("$t=$ "+t+", $M=$ "+mass,'Interpreter','latex','FontSize',fs)
+        title("$t=$ "+t,'Interpreter','latex','FontSize',fs)
         xlim([-pi*c,pi*c])
         ylim([c*gl,c*gr])
         pause(1)
     
         % Export images to folder
         if export_bool == true
-            file_name = sprintf('PDE_%d.png', i);
+            file_name = sprintf('PDE_%d.png', plot_counter);
             exportgraphics(gcf,strcat(working_dir,file_name));
         end
     end
@@ -225,6 +230,10 @@ for i = 0:N_time
     t = t + dt;
 end
 
+% Display mass conservation
+figure (7)
+plot((mass-mass(1))/mass(1), '--x')
+title('Mass Conservation')
 
 %% Helper functions
 % RHS of nonlinear isothermal coords ODE
