@@ -124,6 +124,7 @@ title('Initial Density')
 
 %% Numerical integration
 % RK-4 for time
+% CFL is something like dt < (dx)^2/sqrt(2) for 2D
 dt = 0.0005;
 tf = 1;
 N_time = floor(tf/dt);
@@ -153,6 +154,7 @@ colormap default;
 seed = psi_0;
 
 % Define spatially-varying Lambda as matrix
+% Multiply by L instead of dividing for performance (?)
 L = lambda(Phi_temp,Theta_temp);
 
 % Want to export images?
@@ -185,8 +187,9 @@ pause;
 
 for i = 0:N_time
     % Plot time step
-    density = abs(psi).^2;
-    mass = sum(sum(abs(psi).^2));
+    density = conj(psi).*psi;
+    % Possibly a different mass formula due to curvature?
+    mass = sum(sum(conj(psi).*psi));
     surf(Utemp,Vtemp,density)
     shading interp;
     colormap gray;
@@ -203,10 +206,10 @@ for i = 0:N_time
     %axis equal;
 
     % Export images to folder
-%     if export_bool == true
-%         file_name = sprintf('PDE_%d.png', i);
-%         exportgraphics(gcf,strcat(working_dir,file_name));
-%     end
+    if export_bool == true
+        file_name = sprintf('PDE_%d.png', i);
+        exportgraphics(gcf,strcat(working_dir,file_name));
+    end
     
     tic;
     k1 = RHS(psi, L, du, dv);
@@ -215,11 +218,6 @@ for i = 0:N_time
     k4 = RHS(psi + dt*k3, L, du, dv);
     psi = psi + (dt/6)*(k1 + 2*k2 + 2*k3 + k4);
     toc;
-
-    % Enforce periodic BCs?
-    % Not with circshift in play?
-    %psi(N,:) = psi(1,:);
-    %psi(:,N) = psi(:,1);
 
     % Update the time
     t = t + dt;
@@ -244,8 +242,15 @@ function F_of_psi = RHS(psi, L, du, dv)
     %F_of_psi = 1i.*(2*del2(psi, du, dv)./L - (abs(psi).^2).*psi);
 
     % Periodic BCs w/ circshift?
+    % Advice: don't use circshift for performance (?) home-made instead (?)
+    % Check 639 code
+    % Define 1/du^2 or dv^2 as variable to speed up performance (?)
+    % (pre-computing)
+    % Matlab 'profiler' performance GUI - google, yo!
+    % Rewrite expression to have only one multiplication if possible
     F_of_psi = (1i/2)*(-2*(1/(du^2) + 1/(dv^2))*psi ...
     + (1/(du^2))*( circshift(psi,1,2) + circshift(psi,-1,2) )...
     + (1/(dv^2))*( circshift(psi,1,1) + circshift(psi,-1,1) ))./L ...
     - 1i*(abs(psi).^2).*psi;
+    % Maybe try psi.^2 (?)
 end
