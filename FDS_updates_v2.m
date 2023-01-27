@@ -125,7 +125,8 @@ title('Initial Density')
 %% Numerical integration
 % RK-4 for time
 % CFL is something like dt < (dx)^2/sqrt(2) for 2D
-dt = 0.0005;
+%dt = 0.0005;
+dt = 0.001;
 tf = 1;
 N_time = floor(tf/dt);
 
@@ -181,34 +182,35 @@ psi = seed; % Initialize wave function
 % camlight
 
 % Confirm IC
-figure (6)
 disp('Continue? Press ye olde enter key...')
 pause;
 
 for i = 0:N_time
-    % Plot time step
-    density = conj(psi).*psi;
-    % Possibly a different mass formula due to curvature?
-    mass = sum(sum(conj(psi).*psi));
-    surf(Utemp,Vtemp,density)
-    shading interp;
-    colormap gray;
-    axis equal;
-    view(0,90)
-    colorbar
-    %camlight
-    title("$t=$ "+t+", $M=$ "+mass,'Interpreter','latex','FontSize',fs)
-    xlim([-pi*c,pi*c])
-    ylim([c*gl,c*gr])
-    pause(0.01)
-    %contour(Utemp,Vtemp,phase(psi,w1,w2),10)
-    %colormap hsv;
-    %axis equal;
-
-    % Export images to folder
-    if export_bool == true
-        file_name = sprintf('PDE_%d.png', i);
-        exportgraphics(gcf,strcat(working_dir,file_name));
+    % Plot every 0.1ish seconds
+    if mod(i,100)==0
+        figure (6)
+        disp('yee')
+        % Plot time step
+        density = conj(psi).*psi;
+        % Possibly a different mass formula due to curvature?
+        mass = sum(sum(conj(psi).*psi));
+        surf(Utemp,Vtemp,density)
+        shading interp;
+        colormap gray;
+        axis equal;
+        view(0,90)
+        colorbar
+        %camlight
+        title("$t=$ "+t+", $M=$ "+mass,'Interpreter','latex','FontSize',fs)
+        xlim([-pi*c,pi*c])
+        ylim([c*gl,c*gr])
+        pause(1)
+    
+        % Export images to folder
+        if export_bool == true
+            file_name = sprintf('PDE_%d.png', i);
+            exportgraphics(gcf,strcat(working_dir,file_name));
+        end
     end
     
     tic;
