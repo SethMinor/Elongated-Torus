@@ -232,8 +232,10 @@ end
 
 % Display mass conservation
 figure (7)
-plot((mass-mass(1))/mass(1), '--x')
+plot((mass-mass(1))/mass(1), '--xr')
 title('Mass Conservation')
+xlabel("n, where t = (n-1)"+1000*dt)
+ylabel('Relative Error')
 
 %% Helper functions
 % RHS of nonlinear isothermal coords ODE
