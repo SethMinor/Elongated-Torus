@@ -80,7 +80,7 @@ p = exp(-gr); % nome (for periodicity)
 %% Initial conditions for wave function
 % Initial vortex positions in [-pi*c,pi*c]x[cgl,cgr]
 w1 = (0) + 1i*(2); % positive vortex
-w2 = (3) + 1i*(-1); % negative vortex
+w2 = (0) + 1i*(-2); % negative vortex
 
 % Complex flow potential
 F =@(w,w1,w2) log(jacobitheta1((w-w1)./(2*c),p,cap)./jacobitheta1((w-w2)./(2*c),p,cap))...
@@ -104,9 +104,12 @@ axis equal;
 title('Initial Phase Contours')
 
 % Create initial wave function
+% IC =@(w,w1,w2) sqrt(mu)*exp(1i*phase(w,w1,w2))...
+%     .*tanh(sqrt(mu)*sqrt((real(w)-real(w1)).^2 + (imag(w)-imag(w1)).^2))...
+%     .*tanh(sqrt(mu)*sqrt((real(w)-real(w2)).^2 + (imag(w)-imag(w2)).^2));
 IC =@(w,w1,w2) sqrt(mu)*exp(1i*phase(w,w1,w2))...
-    .*tanh(sqrt(mu)*sqrt((real(w)-real(w1)).^2 + (imag(w)-imag(w1)).^2))...
-    .*tanh(sqrt(mu)*sqrt((real(w)-real(w2)).^2 + (imag(w)-imag(w2)).^2));
+    .*(tanh(0.8.*sqrt(mu)*sqrt((real(w)-real(w1)).^2 + (imag(w)-imag(w1)).^2)).^(1.5))...
+    .*(tanh(0.8.*sqrt(mu)*sqrt((real(w)-real(w2)).^2 + (imag(w)-imag(w2)).^2)).^(1.5));
 
 % Plot density of initial condition
 figure (4)
@@ -125,9 +128,9 @@ title('Initial Density')
 %% Numerical integration
 % RK-4 for time
 % CFL is something like dt < (dx)^2/sqrt(2) for 2D
-dt = 0.0005;
-%dt = 0.001;
-tf = 1000;
+%dt = 0.0005;
+dt = 0.0025;
+tf = 200;
 N_time = floor(tf/dt);
 
 % Local scale factor
@@ -155,7 +158,7 @@ colormap default;
 seed = psi_0;
 
 % Define spatially-varying Lambda as matrix
-% Multiply by L instead of dividing for performance (?)
+% Multiply by pre-computed 1/L instead of dividing for performance (?)
 L = lambda(Phi_temp,Theta_temp);
 
 % Want to export images?
@@ -194,7 +197,7 @@ for i = 0:N_time
     if mod(i,1000) == 0
         plot_counter = plot_counter + 1;
         figure (6)
-        disp('yee')
+        disp('Plotting frame')
         % Plot time step
         density = conj(psi).*psi;
         % Possibly a different mass formula due to curvature?
@@ -264,6 +267,6 @@ function F_of_psi = RHS(psi, L, du, dv)
     F_of_psi = (1i/2)*(-2*(1/(du^2) + 1/(dv^2))*psi ...
     + (1/(du^2))*( circshift(psi,1,2) + circshift(psi,-1,2) )...
     + (1/(dv^2))*( circshift(psi,1,1) + circshift(psi,-1,1) ))./L ...
-    - 1i*(abs(psi).^2).*psi;
+    - 1i*(conj(psi).*psi).*psi;
     % Maybe try psi.^2 (?)
 end
