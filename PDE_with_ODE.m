@@ -6,15 +6,15 @@ clear, clc;
 fs = 14;
 
 % NLS density
-mu = 3;
+mu = 4;
 
 % Grid size (NxN)
-N = 150;
+N = 250;
 
 % Torus parameters
-a = 11;
+a = 13;
 R = 11;
-r = 8;
+r = 3;
 c = sqrt(R^2 - r^2);
 myalpha = r/R;
 
@@ -79,8 +79,8 @@ p = exp(-gr); % nome (for periodicity)
 
 %% Initial conditions for wave function
 % Initial vortex positions in [-pi*c,pi*c]x[cgl,cgr]
-w1 = (6) + 1i*(0); % positive vortex
-w2 = (-6) + 1i*(0); % negative vortex
+w1 = (16) + 1i*(6); % positive vortex
+w2 = (14) + 1i*(-5); % negative vortex
 
 % Complex flow potential
 F =@(w,w1,w2) log(jacobitheta1((w-w1)./(2*c),p,cap)./jacobitheta1((w-w2)./(2*c),p,cap))...
@@ -97,22 +97,19 @@ Vgrid = linspace(c*gl,c*gr - dv,N);
 [Utemp,Vtemp] = meshgrid(Ugrid,Vgrid);
 Z = phase(Utemp+1i*Vtemp,w1,w2);
 
-figure (3)
+figure (2)
 contour(Utemp,Vtemp,Z,50)
 colormap hsv;
 axis equal;
 title('Initial Phase Contours')
 
-% Create initial wave function
+% Create initial wave function (PDE)
 IC =@(w,w1,w2) sqrt(mu)*exp(1i*phase(w,w1,w2))...
     .*tanh(sqrt(mu)*sqrt((real(w)-real(w1)).^2 + (imag(w)-imag(w1)).^2))...
     .*tanh(sqrt(mu)*sqrt((real(w)-real(w2)).^2 + (imag(w)-imag(w2)).^2));
-% IC =@(w,w1,w2) sqrt(mu)*exp(1i*phase(w,w1,w2))...
-%     .*(tanh(0.8.*sqrt(mu)*sqrt((real(w)-real(w1)).^2 + (imag(w)-imag(w1)).^2)).^(1.5))...
-%     .*(tanh(0.8.*sqrt(mu)*sqrt((real(w)-real(w2)).^2 + (imag(w)-imag(w2)).^2)).^(1.5));
 
 % Plot density of initial condition
-figure (4)
+figure (3)
 psi_0 = IC(Utemp+1i*Vtemp,w1,w2);
 Z = conj(psi_0).*psi_0;
 surf(Utemp,Vtemp,Z)
@@ -125,13 +122,81 @@ title('Initial Density')
 % For plotting on el toroos:
 % https://www.mathworks.com/help/matlab/visualize/representing-a-matrix-as-a-surface.html
 
-%% Numerical integration
+%% Numerical integration (ODE)
+% Vortex charges
+q1 = 1;
+q2 = -1;
+q = [q1 q2];   % vector of vortex charges
+N = length(q); % keeping track of number of vortices
+
+% Real and imaginary parts of ICs
+u1 = real(w1);
+v1 = imag(w1);
+
+u2 = real(w2);
+v2 = imag(w2);
+
+% Set equations of motion
+tf = 500;
+timespan = [0, tf];
+options = odeset('RelTol', 1e-12, 'AbsTol', 1e-12);
+
+% Numerical integration using ode45
+y0 = [u1, u2, v1, v2];
+[t_ode, y_ode] = ode15s('vortex_velocity_v2',timespan, y0, options,...
+    N, q, r, a, R, c, p, cap, theta, Dginv, gr);
+
+% Vortices in isothermal coordinates
+U = y_ode(:,1:N); % u-coords
+U = UVwrap(U, [-pi*c, pi*c]);
+
+V = y_ode(:,(1+N):2*N); % v-coords
+V = UVwrap(V, [c*gl, c*gr]);
+
+% Some nice RGB colores
+bluey = [0 0.4470 0.7410];
+orangu = [0.8500 0.3250 0.0980];
+figure (4)
+
+% Physical trajectory in isothermal coordinates
+subplot(3,1,1)
+plot(U,V)
+grid on
+xlabel('$u = $Re$(w)$','Interpreter','latex','FontSize',fs)
+ylabel('$v = $Im$(w)$','Interpreter','latex','FontSize',fs)
+title('Isothermal Coordinates','Interpreter','latex','FontSize',fs)
+xlim([-pi*c, pi*c])
+ylim([c*gl, c*gr])
+
+% Energy conservation
+[energy,classic,curve,quantum] = hamiltonian_v2(U,V,N,q,p,c,r,a,R,cap,phi,theta,gr);
+energy_time = linspace(0,tf,length(energy));
+
+% Plot relative difference (E(t)-E(0))/E(0)
+subplot(3,1,2)
+plot(energy_time,((energy-energy(1))./energy(1)))
+title('Energy of solution','Interpreter','latex')
+grid on
+xlabel('$t$','Interpreter','latex')
+ylabel('$\frac{H(t)-H_0}{H_0}$','Interpreter','latex')
+
+% Plot each energy contribution
+subplot(3,1,3)
+plot(energy_time,energy,'-',energy_time,classic,'--')
+hold on
+plot(energy_time,curve,'--',energy_time,quantum,'--')
+hold off
+grid on
+xlabel('$t$','Interpreter','latex')
+ylabel('Energy contributions','Interpreter','latex')
+legend('Total, $H$','Classic','Curvature','Quantum','Interpreter','latex')
+
+%% Numerical integration (PDE)
 % RK-4 for time
 % CFL is something like dt < (dx)^2/sqrt(2) for 2D
-%dt = 0.0005;
-dt = 0.0025;
-%dt = 0.0005;
-tf = 500;
+dt = 0.0005;
+%dt = 0.0025;
+%tf = 500;
 N_time = floor(tf/dt);
 
 % Local scale factor
@@ -233,11 +298,10 @@ function dydx = odefcn(theta, phi, a, R, r)
   dydx = -1i*(r/gamma);
 end
 
-% % Wrap U,V to interval
-% % IS THIS NECESSARY?
-% function wrapped = UVwrap(array, interval)
-%     wrapped = mod(array - interval(1), range(interval)) + interval(1);
-% end
+% Wrap U,V to interval
+function wrapped = UVwrap(array, interval)
+    wrapped = mod(array - interval(1), range(interval)) + interval(1);
+end
 
 % Return the RHS
 function F_of_psi = RHS(psi, L, du, dv)
