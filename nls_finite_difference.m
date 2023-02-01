@@ -1,14 +1,17 @@
-%% Simulations on the elongated torus
-clear, clc, clf;
+%% Numerical NLS vortex dynamics
+% On the surface of the elongated torus
+clear, clc;
 
-% Font size, for plotting
-fs = 10;
-%'Interpreter','latex','FontSize', fs
+% Fontsize, for plotting
+fs = 14;
 
-% Parameters
-% SEEMS LIKE THIS CODE MATCHES OG CODE BETTER FOR LARGER ALPHA
-% BATTLE BETWEEN ISOTHERMAL AND THIS (?)
-% Symplectic integrator as a possible fix (?)
+% NLS density
+mu = 4;
+
+% Grid size (NxN)
+N = 250;
+
+% Torus parameters
 a = 13;
 R = 11;
 r = 3;
@@ -16,13 +19,14 @@ c = sqrt(R^2 - r^2);
 myalpha = r/R;
 
 %% Solving for isothermal coordinates
+% Need this to get nome
 % Boundary condition
 phi_0 = 0;
 
 % Numerical integration using ode45
 theta_span = [0, pi];
 options = odeset('RelTol', 3e-14, 'AbsTol', 3e-14);
-[theta_raw,phi_raw] = ode15s(@(theta,phi) odefcn(theta,phi,a,R,r), theta_span, phi_0, options);
+[theta_raw, phi_raw] = ode15s(@(theta,phi) odefcn(theta,phi,a,R,r), theta_span, phi_0, options);
 
 % Give these hosses odd symmetry 
 theta_raw = [-flip(theta_raw(2:end)); theta_raw];
@@ -49,9 +53,6 @@ vhelper = fit(theta_raw, imag(phi_raw), 'cubicinterp');
 u =@(phi) c*phi;
 v =@(theta) -c*vhelper(theta);
 
-% Conformal map
-w =@(phi,theta) u(phi) + 1i*v(theta);
-
 % Defining the (u,v) to (phi,theta) map
 ginv = fit(imag(phi_raw), theta_raw, 'cubicinterp');
 phi =@(u) u/c;
@@ -76,143 +77,181 @@ lambda =@(phi,theta) gamma(phi,theta)./c;
 cap = 20;     % truncation error
 p = exp(-gr); % nome (for periodicity)
 
-%% Initial conditions for vortices
+%% Initial conditions for wave function
 % Initial vortex positions in [-pi*c,pi*c]x[cgl,cgr]
-% [-pi*c,pi*c] = [-33.2475, 33.2475]
-% [cgl,cgr] = [-10.5830, 10.5830]
-w1_0 = (16) + 1i*(6.0); % positive vortex
-w2_0 = (14) + 1i*(-5.0); % negative vortex
+w1 = (16) + 1i*(6); % positive vortex
+w2 = (14) + 1i*(-5); % negative vortex
 
-% Vortex charges
-q1 = 1;
-q2 = -1;
-q = [q1 q2];   % vector of vortex charges
-N = length(q); % keeping track of number of vortices
+% Complex flow potential
+F =@(w,w1,w2) log(jacobitheta1((w-w1)./(2*c),p,cap)./jacobitheta1((w-w2)./(2*c),p,cap))...
+    - (real(w1-w2)./(2*c^2*gr))*w;
 
-% real and imaginary parts of isothermal coords
-u1_0 = real(w1_0);
-v1_0 = imag(w1_0);
+% Phase of the flow field, Phi=Im(F)
+phase =@(w,w1,w2) imag(F(w,w1,w2));
 
-u2_0 = real(w2_0);
-v2_0 = imag(w2_0);
-
-%% Integrate the equations of motion
-% Set total time and tolerances
-t0 = 0;
-tf = 500;
-timespan = [t0, tf];
-options = odeset('RelTol', 1e-13, 'AbsTol', 1e-13);
-
-% Numerical integration using ode45
-y0 = [u1_0, u2_0, v1_0, v2_0];
-[t,y] = ode15s('vortex_velocity_v2',timespan, y0, options,...
-    N, q, r, a, R, c, p, cap, theta, Dginv, gr);
-
-%% Change coordinates from numerical solution
-% Vortices in isothermal coordinates
-U = y(:,1:N); % u-coords
-U = UVwrap(U, [-pi*c, pi*c]);
-
-V = y(:,(1+N):2*N); % v-coords
-V = UVwrap(V, [c*gl, c*gr]);
-
-% Full complex coordinate
-W = U + 1i*V;
-
-% Toroidal-poloidal coordinates
-Phi = U./c;
-Theta = [theta(V(:,1)), theta(V(:,2))];
-
-% 3D Cartesian coordinates
-X = (a+r*cos(Theta)).*cos(Phi);
-Y = (R+r*cos(Theta)).*sin(Phi);
-Z = r*sin(Theta);
-
-%% Plot integrated solution
-% Some nice RGB colores
-bluey = [0 0.4470 0.7410];
-orangu = [0.8500 0.3250 0.0980];
-
-figure (2)
-
-% Isothermal orbit
-subplot(2,1,1)
-plot(U,V)
-grid on
-xlabel('$u = $Re$(w)$','Interpreter','latex','FontSize',fs)
-ylabel('$v = $Im$(w)$','Interpreter','latex','FontSize',fs)
-title('Isothermal Coordinates','Interpreter','latex','FontSize',fs)
-xlim([-pi*c, pi*c])
-ylim([c*gl, c*gr])
-
-% Toriodal-poloidal orbit
-subplot(2,1,2)
-plotwrapped(Phi(:,1),Theta(:,1),1, [-pi, pi],[-pi, pi], 0.05, bluey)
-hold on
-plotwrapped(Phi(:,2),Theta(:,2),1, [-pi, pi],[-pi, pi], 0.05, orangu)
-hold off
-xlabel('$\phi$','Interpreter','latex','FontSize',fs)
-ylabel('$\theta$','Interpreter','latex','FontSize',fs)
-title('Toroidal-Poloidal Coordinates','Interpreter','latex','FontSize',fs)
-xlim([-pi, pi])
-ylim([-pi, pi])
-
-% 3D Cartesian surface plot of orbits
-utorus = linspace(0,2*pi);
-vtorus = linspace(0,2*pi);
-[Utorus,Vtorus] = meshgrid(utorus,vtorus);
-Xtorus = (a+r.*cos(Vtorus)).*cos(Utorus);
-Ytorus = (R+r.*cos(Vtorus)).*sin(Utorus);
-Ztorus = r.*sin(Vtorus);
+% Create a contour plot of the phase
+du = 2*pi*c/N;
+dv = 2*c*gr/N;
+Ugrid = linspace(-c*pi,c*pi - du,N);
+Vgrid = linspace(c*gl,c*gr - dv,N);
+[Utemp,Vtemp] = meshgrid(Ugrid,Vgrid);
+Z = phase(Utemp+1i*Vtemp,w1,w2);
 
 figure (3)
-surf(Xtorus, Ytorus, Ztorus,'FaceAlpha',0.3);
-colormap('gray')
+contour(Utemp,Vtemp,Z,50)
+colormap hsv;
+axis equal;
+title('Initial Phase Contours')
+
+% Create initial wave function
+IC =@(w,w1,w2) sqrt(mu)*exp(1i*phase(w,w1,w2))...
+    .*tanh(sqrt(mu)*sqrt((real(w)-real(w1)).^2 + (imag(w)-imag(w1)).^2))...
+    .*tanh(sqrt(mu)*sqrt((real(w)-real(w2)).^2 + (imag(w)-imag(w2)).^2));
+% IC =@(w,w1,w2) sqrt(mu)*exp(1i*phase(w,w1,w2))...
+%     .*(tanh(0.8.*sqrt(mu)*sqrt((real(w)-real(w1)).^2 + (imag(w)-imag(w1)).^2)).^(1.5))...
+%     .*(tanh(0.8.*sqrt(mu)*sqrt((real(w)-real(w2)).^2 + (imag(w)-imag(w2)).^2)).^(1.5));
+
+% Plot density of initial condition
+figure (4)
+psi_0 = IC(Utemp+1i*Vtemp,w1,w2);
+Z = conj(psi_0).*psi_0;
+surf(Utemp,Vtemp,Z)
 shading interp;
-hold on
-plot3(X,Y,Z)
-hold off
-grid on
-axis equal
-xlabel('$x$','Interpreter','latex','FontSize',fs)
-ylabel('$y$','Interpreter','latex','FontSize',fs)
-zlabel('$z$','Interpreter','latex','FontSize',fs)
-title('3D Cartesian (Physical Path)','Interpreter','latex','FontSize',fs)
+colormap gray;
+axis equal;
+camlight
+title('Initial Density')
 
-%% Display Hamiltonian
-% Compute total energy
-[energy,classic,curve,quantum] = hamiltonian_v2(U,V,N,q,p,c,r,a,R,cap,phi,theta,gr);
-energy_time = linspace(t0,tf,length(energy));
+% For plotting on el toroos:
+% https://www.mathworks.com/help/matlab/visualize/representing-a-matrix-as-a-surface.html
 
-figure (4);
+%% Numerical integration
+% RK-4 for time
+% CFL is something like dt < (dx)^2/sqrt(2) for 2D
+dt = 0.0005;
+%dt = 0.0025;
+tf = 500;
+N_time = floor(tf/dt);
 
-% Plot relative difference (E(t)-E(0))/E(0)
-subplot(2,1,1)
-plot(energy_time,((energy-energy(1))./energy(1)))
-title('Energy of solution','Interpreter','latex')
-grid on
-xlabel('$t$','Interpreter','latex')
-ylabel('$\frac{H(t)-H_0}{H_0}$','Interpreter','latex')
+% Local scale factor
+figure (5)
+subplot(1,2,1)
+[Phi_temp, Theta_temp] = meshgrid(phi(Ugrid),theta(Vgrid)');
+surf(Phi_temp, Theta_temp, lambda(Phi_temp,Theta_temp))
+title('\Lambda(\phi,\theta)')
+xlabel('\phi')
+ylabel('\theta')
+view([0,90])
+shading interp;
+colormap default;
 
-% Plot each energy contribution
-subplot(2,1,2)
-plot(energy_time,energy,'-',energy_time,classic,'--')
-hold on
-plot(energy_time,curve,'--',energy_time,quantum,'--')
-hold off
-grid on
-xlabel('$t$','Interpreter','latex')
-ylabel('Energy contributions','Interpreter','latex')
-legend('Total, $H$','Classic','Curvature','Quantum','Interpreter','latex')
+subplot(1,2,2)
+surf(Utemp, Vtemp, lambda(Phi_temp,Theta_temp))
+title('\Lambda(u,v)')
+xlabel('u')
+ylabel('v')
+view([0,90])
+shading interp;
+colormap default;
 
-%% Function definitions
+% Reshape initial condition array
+seed = psi_0;
+
+% Define spatially-varying Lambda as matrix
+% Multiply by pre-computed 1/L instead of dividing for performance (?)
+L = lambda(Phi_temp,Theta_temp);
+
+% Want to export images?
+export_bool = true;
+working_dir = 'C:\Users\sminor2848\Downloads\Elongated-Torus-main\Elongated-Torus-main\pics\';
+
+% RK-4 for-loop
+t = 0; % Initialize time
+psi = seed; % Initialize wave function
+
+% Confirm IC
+disp('Continue? Press ye olde enter key...')
+pause;
+plot_counter = 0;
+
+% Initialize mass history
+mass = [];
+
+for i = 0:N_time
+    % Plot every 0.5ish seconds
+    if mod(i,1000) == 0
+        plot_counter = plot_counter + 1;
+        figure (6)
+        disp('Plotting frame')
+        % Plot time step
+        density = conj(psi).*psi;
+        % Possibly a different mass formula due to curvature?
+        mass(plot_counter) = sum(sum(conj(psi).*psi));
+        surf(Utemp,Vtemp,density)
+        shading interp;
+        colormap gray;
+        axis equal;
+        view(0,90)
+        colorbar
+        %camlight
+        title("$t=$ "+t,'Interpreter','latex','FontSize',fs)
+        xlim([-pi*c,pi*c])
+        ylim([c*gl,c*gr])
+        pause(1)
+    
+        % Export images to folder
+        if export_bool == true
+            file_name = sprintf('PDE_%d.png', plot_counter);
+            exportgraphics(gcf,strcat(working_dir,file_name));
+        end
+    end
+    
+    tic;
+    k1 = RHS(psi, L, du, dv);
+    k2 = RHS(psi + (dt/2)*k1, L, du, dv);
+    k3 = RHS(psi + (dt/2)*k2, L, du, dv);
+    k4 = RHS(psi + dt*k3, L, du, dv);
+    psi = psi + (dt/6)*(k1 + 2*k2 + 2*k3 + k4);
+    toc;
+
+    % Update the time
+    t = t + dt;
+end
+
+% Display mass conservation
+figure (7)
+plot((mass-mass(1))/mass(1), '--xr')
+title('Mass Conservation')
+xlabel("n, where t = (n-1)"+1000*dt)
+ylabel('Relative Error')
+
+%% Helper functions
 % RHS of nonlinear isothermal coords ODE
 function dydx = odefcn(theta, phi, a, R, r)
   gamma = sqrt((a+r*cos(theta)).^2.*sin(phi).^2 + (R+r*cos(theta)).^2.*cos(phi).^2);
   dydx = -1i*(r/gamma);
 end
 
-% Wrap U,V to interval
-function wrapped = UVwrap(array, interval)
-    wrapped = mod(array - interval(1), range(interval)) + interval(1);
+% % Wrap U,V to interval
+% % IS THIS NECESSARY?
+% function wrapped = UVwrap(array, interval)
+%     wrapped = mod(array - interval(1), range(interval)) + interval(1);
+% end
+
+% Return the RHS
+function F_of_psi = RHS(psi, L, du, dv)
+    %F_of_psi = 1i.*(2*del2(psi, du, dv)./L - (abs(psi).^2).*psi);
+
+    % Periodic BCs w/ circshift?
+    % Advice: don't use circshift for performance (?) home-made instead (?)
+    % Check 639 code
+    % Define 1/du^2 or dv^2 as variable to speed up performance (?)
+    % (pre-computing)
+    % Matlab 'profiler' performance GUI - google, yo!
+    % Rewrite expression to have only one multiplication if possible
+    F_of_psi = (1i/2)*(-2*(1/(du^2) + 1/(dv^2))*psi ...
+    + (1/(du^2))*( circshift(psi,1,2) + circshift(psi,-1,2) )...
+    + (1/(dv^2))*( circshift(psi,1,1) + circshift(psi,-1,1) ))./(L.^2) ...
+    - 1i*(conj(psi).*psi).*psi;
+    % Maybe try psi.^2 (?)
 end
