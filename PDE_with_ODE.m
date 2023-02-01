@@ -127,7 +127,7 @@ title('Initial Density')
 q1 = 1;
 q2 = -1;
 q = [q1 q2];   % vector of vortex charges
-N = length(q); % keeping track of number of vortices
+N_vortices = length(q); % keeping track of number of vortices
 
 % Real and imaginary parts of ICs
 u1 = real(w1);
@@ -144,13 +144,13 @@ options = odeset('RelTol', 1e-12, 'AbsTol', 1e-12);
 % Numerical integration using ode45
 y0 = [u1, u2, v1, v2];
 [t_ode, y_ode] = ode15s('vortex_velocity_v2',timespan, y0, options,...
-    N, q, r, a, R, c, p, cap, theta, Dginv, gr);
+    N_vortices, q, r, a, R, c, p, cap, theta, Dginv, gr);
 
 % Vortices in isothermal coordinates
-U = y_ode(:,1:N); % u-coords
+U = y_ode(:,1:N_vortices); % u-coords
 U = UVwrap(U, [-pi*c, pi*c]);
 
-V = y_ode(:,(1+N):2*N); % v-coords
+V = y_ode(:,(1+N_vortices):2*N_vortices); % v-coords
 V = UVwrap(V, [c*gl, c*gr]);
 
 % Some nice RGB colores
@@ -169,7 +169,8 @@ xlim([-pi*c, pi*c])
 ylim([c*gl, c*gr])
 
 % Energy conservation
-[energy,classic,curve,quantum] = hamiltonian_v2(U,V,N,q,p,c,r,a,R,cap,phi,theta,gr);
+[energy,classic,curve,quantum] = hamiltonian_v2(U,V,N_vortices,...
+    q,p,c,r,a,R,cap,phi,theta,gr);
 energy_time = linspace(0,tf,length(energy));
 
 % Plot relative difference (E(t)-E(0))/E(0)
@@ -263,7 +264,15 @@ for i = 0:N_time
         title("$t=$ "+t,'Interpreter','latex','FontSize',fs)
         xlim([-pi*c,pi*c])
         ylim([c*gl,c*gr])
-        pause(1)
+        %pause(1)
+        
+        % Add ODE orbit
+        hold on
+        % Get index of point at the nearest time
+        [~,i_nearest] = (min(abs(t_ode - t)));
+        plot3(U(1:i_nearest,:), V(1:i_nearest,:), 0*U(1:i_nearest,:)+mu+1,...
+            '.','MarkerSize',4)
+        hold off
     
         % Export images to folder
         if export_bool == true
