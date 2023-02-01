@@ -9,12 +9,12 @@ fs = 14;
 mu = 3;
 
 % Grid size (NxN)
-N = 250;
+N = 150;
 
 % Torus parameters
 a = 11;
 R = 11;
-r = 3;
+r = 8;
 c = sqrt(R^2 - r^2);
 myalpha = r/R;
 
@@ -79,8 +79,8 @@ p = exp(-gr); % nome (for periodicity)
 
 %% Initial conditions for wave function
 % Initial vortex positions in [-pi*c,pi*c]x[cgl,cgr]
-w1 = (0) + 1i*(2); % positive vortex
-w2 = (0) + 1i*(-2); % negative vortex
+w1 = (6) + 1i*(0); % positive vortex
+w2 = (-6) + 1i*(0); % negative vortex
 
 % Complex flow potential
 F =@(w,w1,w2) log(jacobitheta1((w-w1)./(2*c),p,cap)./jacobitheta1((w-w2)./(2*c),p,cap))...
@@ -104,12 +104,12 @@ axis equal;
 title('Initial Phase Contours')
 
 % Create initial wave function
-% IC =@(w,w1,w2) sqrt(mu)*exp(1i*phase(w,w1,w2))...
-%     .*tanh(sqrt(mu)*sqrt((real(w)-real(w1)).^2 + (imag(w)-imag(w1)).^2))...
-%     .*tanh(sqrt(mu)*sqrt((real(w)-real(w2)).^2 + (imag(w)-imag(w2)).^2));
 IC =@(w,w1,w2) sqrt(mu)*exp(1i*phase(w,w1,w2))...
-    .*(tanh(0.8.*sqrt(mu)*sqrt((real(w)-real(w1)).^2 + (imag(w)-imag(w1)).^2)).^(1.5))...
-    .*(tanh(0.8.*sqrt(mu)*sqrt((real(w)-real(w2)).^2 + (imag(w)-imag(w2)).^2)).^(1.5));
+    .*tanh(sqrt(mu)*sqrt((real(w)-real(w1)).^2 + (imag(w)-imag(w1)).^2))...
+    .*tanh(sqrt(mu)*sqrt((real(w)-real(w2)).^2 + (imag(w)-imag(w2)).^2));
+% IC =@(w,w1,w2) sqrt(mu)*exp(1i*phase(w,w1,w2))...
+%     .*(tanh(0.8.*sqrt(mu)*sqrt((real(w)-real(w1)).^2 + (imag(w)-imag(w1)).^2)).^(1.5))...
+%     .*(tanh(0.8.*sqrt(mu)*sqrt((real(w)-real(w2)).^2 + (imag(w)-imag(w2)).^2)).^(1.5));
 
 % Plot density of initial condition
 figure (4)
@@ -130,7 +130,8 @@ title('Initial Density')
 % CFL is something like dt < (dx)^2/sqrt(2) for 2D
 %dt = 0.0005;
 dt = 0.0025;
-tf = 200;
+%dt = 0.0005;
+tf = 500;
 N_time = floor(tf/dt);
 
 % Local scale factor
@@ -168,21 +169,6 @@ working_dir = 'C:\Users\sminor2848\Downloads\Elongated-Torus-main\Elongated-Toru
 % RK-4 for-loop
 t = 0; % Initialize time
 psi = seed; % Initialize wave function
-
-% Experimenting with Laplacian
-% figure (6)
-% subplot(1,2,1)
-% surf(Utemp, Vtemp, real(4*del2(psi, du, dv)))
-% shading interp;
-% camlight
-% 
-% subplot(1,2,2)
-% Diesel = -2*(1/(du^2) + 1/(dv^2))*psi ...
-%     + (1/(du^2))*( circshift(psi,1,2) + circshift(psi,-1,2) )...
-%     + (1/(dv^2))*( circshift(psi,1,1) + circshift(psi,-1,1) );
-% surf(Utemp, Vtemp, real(Diesel))
-% shading interp;
-% camlight
 
 % Confirm IC
 disp('Continue? Press ye olde enter key...')
@@ -269,5 +255,4 @@ function F_of_psi = RHS(psi, L, du, dv)
     + (1/(dv^2))*( circshift(psi,1,1) + circshift(psi,-1,1) ))./(L.^2) ...
     - 1i*(conj(psi).*psi).*psi;
     % Maybe try psi.^2 (?)
-    % Square the ./L b/c it's a Laplacian and not a gradient (?)
 end
