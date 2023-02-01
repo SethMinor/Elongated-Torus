@@ -1,32 +1,28 @@
-%% Numerical NLS vortex dynamics
-% On the surface of the elongated torus
-clear, clc;
+%% Simulations on the elongated torus
+clear, clc, clf;
 
-% Fontsize, for plotting
-fs = 14;
+% Font size, for plotting
+fs = 10;
+%'Interpreter','latex','FontSize', fs
 
-% NLS density
-mu = 5;
-
-% Grid size (NxN)
-N = 60;
-
-% Torus parameters
-a = 11;
+% Parameters
+% SEEMS LIKE THIS CODE MATCHES OG CODE BETTER FOR LARGER ALPHA
+% BATTLE BETWEEN ISOTHERMAL AND THIS (?)
+% Symplectic integrator as a possible fix (?)
+a = 13;
 R = 11;
 r = 3;
 c = sqrt(R^2 - r^2);
 myalpha = r/R;
 
 %% Solving for isothermal coordinates
-% Need this to get nome
 % Boundary condition
 phi_0 = 0;
 
 % Numerical integration using ode45
 theta_span = [0, pi];
 options = odeset('RelTol', 3e-14, 'AbsTol', 3e-14);
-[theta_raw, phi_raw] = ode15s(@(theta,phi) odefcn(theta,phi,a,R,r), theta_span, phi_0, options);
+[theta_raw,phi_raw] = ode15s(@(theta,phi) odefcn(theta,phi,a,R,r), theta_span, phi_0, options);
 
 % Give these hosses odd symmetry 
 theta_raw = [-flip(theta_raw(2:end)); theta_raw];
@@ -53,18 +49,8 @@ vhelper = fit(theta_raw, imag(phi_raw), 'cubicinterp');
 u =@(phi) c*phi;
 v =@(theta) -c*vhelper(theta);
 
-% Plot to verify that 'v' function looks good
-figure (2)
-plot(theta_raw, v(theta_raw))
-hold on
-plot(theta_raw, v0(theta_raw),'--k')
-hold off
-grid on
-
-title('Computed $v$ versus known $v_0$','Interpreter','latex','FontSize', fs+2)
-xlabel('$\theta$','Interpreter','latex','FontSize', fs)
-ylabel('$v(\theta)$','Interpreter','latex','FontSize', fs)
-legend('$v$','$v_0$','Interpreter','latex','FontSize', fs)
+% Conformal map
+w =@(phi,theta) u(phi) + 1i*v(theta);
 
 % Defining the (u,v) to (phi,theta) map
 ginv = fit(imag(phi_raw), theta_raw, 'cubicinterp');
@@ -90,131 +76,136 @@ lambda =@(phi,theta) gamma(phi,theta)./c;
 cap = 20;     % truncation error
 p = exp(-gr); % nome (for periodicity)
 
-%% Initial conditions for wave function
+%% Initial conditions for vortices
 % Initial vortex positions in [-pi*c,pi*c]x[cgl,cgr]
-w1 = (0) + 1i*(4); % positive vortex
-w2 = (0) + 1i*(-4); % negative vortex
+% [-pi*c,pi*c] = [-33.2475, 33.2475]
+% [cgl,cgr] = [-10.5830, 10.5830]
+w1_0 = (16) + 1i*(6.0); % positive vortex
+w2_0 = (14) + 1i*(-5.0); % negative vortex
 
-% Complex flow potential
-F =@(w,w1,w2) log(jacobitheta1((w-w1)./(2*c),p,cap)./jacobitheta1((w-w2)./(2*c),p,cap))...
-    - (real(w1-w2)./(2*c^2*gr))*w;
+% Vortex charges
+q1 = 1;
+q2 = -1;
+q = [q1 q2];   % vector of vortex charges
+N = length(q); % keeping track of number of vortices
 
-% Phase of the flow field, Phi=Im(F)
-phase =@(w,w1,w2) imag(F(w,w1,w2));
+% real and imaginary parts of isothermal coords
+u1_0 = real(w1_0);
+v1_0 = imag(w1_0);
 
-% Create a contour plot of the phase
-Ugrid = linspace(-c*pi,c*pi,N);
-Vgrid = linspace(c*gl,c*gr,N);
-[Utemp,Vtemp] = meshgrid(Ugrid,Vgrid);
-Z = phase(Utemp+1i*Vtemp,w1,w2);
+u2_0 = real(w2_0);
+v2_0 = imag(w2_0);
+
+%% Integrate the equations of motion
+% Set total time and tolerances
+t0 = 0;
+tf = 500;
+timespan = [t0, tf];
+options = odeset('RelTol', 1e-13, 'AbsTol', 1e-13);
+
+% Numerical integration using ode45
+y0 = [u1_0, u2_0, v1_0, v2_0];
+[t,y] = ode15s('vortex_velocity_v2',timespan, y0, options,...
+    N, q, r, a, R, c, p, cap, theta, Dginv, gr);
+
+%% Change coordinates from numerical solution
+% Vortices in isothermal coordinates
+U = y(:,1:N); % u-coords
+U = UVwrap(U, [-pi*c, pi*c]);
+
+V = y(:,(1+N):2*N); % v-coords
+V = UVwrap(V, [c*gl, c*gr]);
+
+% Full complex coordinate
+W = U + 1i*V;
+
+% Toroidal-poloidal coordinates
+Phi = U./c;
+Theta = [theta(V(:,1)), theta(V(:,2))];
+
+% 3D Cartesian coordinates
+X = (a+r*cos(Theta)).*cos(Phi);
+Y = (R+r*cos(Theta)).*sin(Phi);
+Z = r*sin(Theta);
+
+%% Plot integrated solution
+% Some nice RGB colores
+bluey = [0 0.4470 0.7410];
+orangu = [0.8500 0.3250 0.0980];
+
+figure (2)
+
+% Isothermal orbit
+subplot(2,1,1)
+plot(U,V)
+grid on
+xlabel('$u = $Re$(w)$','Interpreter','latex','FontSize',fs)
+ylabel('$v = $Im$(w)$','Interpreter','latex','FontSize',fs)
+title('Isothermal Coordinates','Interpreter','latex','FontSize',fs)
+xlim([-pi*c, pi*c])
+ylim([c*gl, c*gr])
+
+% Toriodal-poloidal orbit
+subplot(2,1,2)
+plotwrapped(Phi(:,1),Theta(:,1),1, [-pi, pi],[-pi, pi], 0.05, bluey)
+hold on
+plotwrapped(Phi(:,2),Theta(:,2),1, [-pi, pi],[-pi, pi], 0.05, orangu)
+hold off
+xlabel('$\phi$','Interpreter','latex','FontSize',fs)
+ylabel('$\theta$','Interpreter','latex','FontSize',fs)
+title('Toroidal-Poloidal Coordinates','Interpreter','latex','FontSize',fs)
+xlim([-pi, pi])
+ylim([-pi, pi])
+
+% 3D Cartesian surface plot of orbits
+utorus = linspace(0,2*pi);
+vtorus = linspace(0,2*pi);
+[Utorus,Vtorus] = meshgrid(utorus,vtorus);
+Xtorus = (a+r.*cos(Vtorus)).*cos(Utorus);
+Ytorus = (R+r.*cos(Vtorus)).*sin(Utorus);
+Ztorus = r.*sin(Vtorus);
 
 figure (3)
-contour(Utemp,Vtemp,Z,50)
-colormap hsv;
-axis equal;
-title('Initial Phase Contours')
-
-% Create initial wave function
-IC =@(w,w1,w2) sqrt(mu)*exp(1i*phase(w,w1,w2))...
-    .*tanh(sqrt(mu)*sqrt((real(w)-real(w1)).^2 + (imag(w)-imag(w1)).^2))...
-    .*tanh(sqrt(mu)*sqrt((real(w)-real(w2)).^2 + (imag(w)-imag(w2)).^2));
-
-% Plot density of initial condition
-figure (4)
-psi_0 = IC(Utemp+1i*Vtemp,w1,w2);
-Z = conj(psi_0).*psi_0;
-surf(Utemp,Vtemp,Z)
+surf(Xtorus, Ytorus, Ztorus,'FaceAlpha',0.3);
+colormap('gray')
 shading interp;
-colormap gray;
-axis equal;
-camlight
-title('Initial Density')
-
-% For plotting on el toroos:
-% https://www.mathworks.com/help/matlab/visualize/representing-a-matrix-as-a-surface.html
-
-%% Numerical integration
-% RK-4 for time
-dt = 0.05;
-tf = 10;
-N_time = floor(tf/dt);
-
-% RHS parameters
-D2 = Delta2d(N);
-
-% Local scale factor
-figure (5)
-subplot(1,3,1)
-[Phi_temp, Theta_temp] = meshgrid(phi(Ugrid),theta(Vgrid)');
-surf(Phi_temp, Theta_temp, lambda(Phi_temp,Theta_temp))
-title('Local scale factor, \Lambda')
-xlabel('\phi')
-ylabel('\theta')
-view([0,90])
-
-subplot(1,3,2)
-surf(Utemp, Vtemp, lambda(Phi_temp,Theta_temp))
-title('\Lambda (isothermal)')
-xlabel('u')
-ylabel('v')
-view([0,90])
-
-subplot(1,3,3)
-Zlambda = c./(R - r.*cos(Vtemp./r));
-surf(Utemp, Vtemp, Zlambda)
-title('\Lambda (known)')
-xlabel('u')
-ylabel('v')
-view([0,90])
-
-% Reshape initial condition array
-seed = reshape(psi_0,[N^2,1]);
-
-% Wrap spatially-varying Lambda into vector
-lambda_vec = reshape(lambda(Phi_temp,Theta_temp),[N^2,1]);
-
-% Confirm IC
-disp('Continue? Press ye olde key...')
-pause;
-
-% RK-4 for-loop
-figure (5)
-t = 0; % Initialize time
-psi = seed; % Initialize wave function
-
 hold on
-for i = 0:N_time
-    % Plot time step
-    psi_temp = reshape(psi,[N,N]);
-    density = conj(psi_temp).*psi_temp;
-    surf(Utemp,Vtemp,density)
-    shading interp;
-    colormap gray;
-    axis equal;
-    view(0,90)
-    %camlight
-    title("$t=$ "+t,'Interpreter','latex','FontSize',fs)
-    xlim([-pi*c,pi*c])
-    ylim([c*gl,c*gr])
-    %pause(0.01)
-    %contour(Utemp,Vtemp,phase(psi_temp,w1,w2),10)
-    %colormap hsv;
-    %axis equal;
-
-    % Update using RK-4
-    k1 = RHS(psi,D2,lambda_vec);
-    k2 = RHS(psi + (dt/2)*k1,D2,lambda_vec);
-    k3 = RHS(psi + (dt/2)*k2,D2,lambda_vec);
-    k4 = RHS(psi + dt*k3,D2,lambda_vec);
-    psi = psi + (dt/6)*(k1 + 2*k2 + 2*k3 + k4);
-
-    % Update the time
-    t = t + dt;
-end
+plot3(X,Y,Z)
 hold off
+grid on
+axis equal
+xlabel('$x$','Interpreter','latex','FontSize',fs)
+ylabel('$y$','Interpreter','latex','FontSize',fs)
+zlabel('$z$','Interpreter','latex','FontSize',fs)
+title('3D Cartesian (Physical Path)','Interpreter','latex','FontSize',fs)
 
+%% Display Hamiltonian
+% Compute total energy
+[energy,classic,curve,quantum] = hamiltonian_v2(U,V,N,q,p,c,r,a,R,cap,phi,theta,gr);
+energy_time = linspace(t0,tf,length(energy));
 
-%% Helper functions
+figure (4);
+
+% Plot relative difference (E(t)-E(0))/E(0)
+subplot(2,1,1)
+plot(energy_time,((energy-energy(1))./energy(1)))
+title('Energy of solution','Interpreter','latex')
+grid on
+xlabel('$t$','Interpreter','latex')
+ylabel('$\frac{H(t)-H_0}{H_0}$','Interpreter','latex')
+
+% Plot each energy contribution
+subplot(2,1,2)
+plot(energy_time,energy,'-',energy_time,classic,'--')
+hold on
+plot(energy_time,curve,'--',energy_time,quantum,'--')
+hold off
+grid on
+xlabel('$t$','Interpreter','latex')
+ylabel('Energy contributions','Interpreter','latex')
+legend('Total, $H$','Classic','Curvature','Quantum','Interpreter','latex')
+
+%% Function definitions
 % RHS of nonlinear isothermal coords ODE
 function dydx = odefcn(theta, phi, a, R, r)
   gamma = sqrt((a+r*cos(theta)).^2.*sin(phi).^2 + (R+r*cos(theta)).^2.*cos(phi).^2);
@@ -222,57 +213,6 @@ function dydx = odefcn(theta, phi, a, R, r)
 end
 
 % Wrap U,V to interval
-% IS THIS NECESSARY?
 function wrapped = UVwrap(array, interval)
     wrapped = mod(array - interval(1), range(interval)) + interval(1);
-end
-
-% Creates Delta1D matrices
-function D1 = Delta1d(N)
-    D1 = diag(-2*ones(N,1)) + diag(ones(N-1,1),1) + diag(ones(N-1,1),-1);
-    D1(end,1) = 1;
-    D1(1,end) = 1;
-end
-
-% Places the Iu and Id matrices in Delta2d
-function PlacedI = PlaceI(N)
-    % Create the upper I-matrix portion
-    IuBlock = {0};
-    for m = 1:N
-        IuBlock{m} = eye(N);
-    end
-    IuBlock = blkdiag(IuBlock{1:end});
-    IuBlock = circshift(IuBlock,N,2);
-
-    % Create the lower I-matrix portion
-    IdBlock = {0};
-    for m = 1:N
-        IdBlock{m} = eye(N);
-    end
-    IdBlock = blkdiag(IdBlock{1:end});
-    IdBlock = circshift(IdBlock,N,2)';
-
-    % Return the combined blocks
-    PlacedI = IuBlock + IdBlock;
-end
-
-% Returns the Delta2D matrix
-function D2 = Delta2d(N)
-    % Add the Delta1D blocks that run down the diagonal
-    Block = {0};
-    for m = 1:N
-        Block{m} = Delta1d(N);
-    end
-    D2 = blkdiag(Block{1:end});
-
-    % Add the Iu and Id blocks on the off-diagonals
-    PlacedI = PlaceI(N);
-
-    % Deliver the final spicy meatball
-    D2 = D2 + PlacedI;
-end
-
-% Return the RHS
-function F_of_psi = RHS(psi,D2,lambda_vec)
-    F_of_psi = 1i*((D2*psi)./lambda_vec - (psi.^2).*conj(psi));
 end
