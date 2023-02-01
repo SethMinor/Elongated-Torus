@@ -197,7 +197,7 @@ for i = 0:N_time
         title("$t=$ "+t,'Interpreter','latex','FontSize',fs)
         xlim([-pi*c,pi*c])
         ylim([c*gl,c*gr])
-        pause(1)
+        %pause(1)
     
         % Export images to folder
         if export_bool == true
