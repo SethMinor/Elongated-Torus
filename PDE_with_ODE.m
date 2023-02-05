@@ -79,8 +79,8 @@ p = exp(-gr); % nome (for periodicity)
 
 %% Initial conditions for wave function
 % Initial vortex positions in [-pi*c,pi*c]x[cgl,cgr]
-w1 = (16) + 1i*(6); % positive vortex
-w2 = (14) + 1i*(-5); % negative vortex
+w1 = (0) + 1i*(3); % positive vortex
+w2 = (0) + 1i*(-3); % negative vortex
 
 % Complex flow potential
 F =@(w,w1,w2) log(jacobitheta1((w-w1)./(2*c),p,cap)./jacobitheta1((w-w2)./(2*c),p,cap))...
@@ -137,7 +137,7 @@ u2 = real(w2);
 v2 = imag(w2);
 
 % Set equations of motion
-tf = 500;
+tf = 800;
 timespan = [0, tf];
 options = odeset('RelTol', 1e-12, 'AbsTol', 1e-12);
 
@@ -160,7 +160,7 @@ figure (4)
 
 % Physical trajectory in isothermal coordinates
 subplot(3,1,1)
-plot(U,V)
+plot(U,V,'-')
 grid on
 xlabel('$u = $Re$(w)$','Interpreter','latex','FontSize',fs)
 ylabel('$v = $Im$(w)$','Interpreter','latex','FontSize',fs)
@@ -195,9 +195,8 @@ legend('Total, $H$','Classic','Curvature','Quantum','Interpreter','latex')
 %% Numerical integration (PDE)
 % RK-4 for time
 % CFL is something like dt < (dx)^2/sqrt(2) for 2D
-dt = 0.0005;
-%dt = 0.0025;
-%tf = 500;
+%dt = 0.0005;
+dt = 0.001;
 N_time = floor(tf/dt);
 
 % Local scale factor
@@ -246,10 +245,10 @@ mass = [];
 
 for i = 0:N_time
     % Plot every 0.5ish seconds
-    if mod(i,1000) == 0
+    if mod(i,100) == 0
         plot_counter = plot_counter + 1;
         figure (6)
-        disp('Plotting frame')
+        %disp('Plotting frame')
         % Plot time step
         density = conj(psi).*psi;
         % Possibly a different mass formula due to curvature?
@@ -281,13 +280,13 @@ for i = 0:N_time
         end
     end
     
-    tic;
+    %tic;
     k1 = RHS(psi, L, du, dv);
     k2 = RHS(psi + (dt/2)*k1, L, du, dv);
     k3 = RHS(psi + (dt/2)*k2, L, du, dv);
     k4 = RHS(psi + dt*k3, L, du, dv);
     psi = psi + (dt/6)*(k1 + 2*k2 + 2*k3 + k4);
-    toc;
+    %toc;
 
     % Update the time
     t = t + dt;
