@@ -32,7 +32,7 @@ phi_raw = [-flip(phi_raw(2:end)); phi_raw];
 v0 =@(theta) 2*r*atan(sqrt((R-r)/(R+r))*tan(theta/2));
 
 figure (1)
-subplot(3,1,1)
+subplot(2,1,1)
 plot(theta_raw, real(phi_raw))
 hold on
 plot(theta_raw, imag(phi_raw))
@@ -54,30 +54,13 @@ v =@(theta) -c*vhelper(theta);
 D1 = differentiate(vhelper, theta_raw);
 Df = fit(theta_raw, D1, 'cubicinterp');
 
-subplot(3,1,2)
-% RHS = -i*r/gamma
+subplot(2,1,2)
 gamma =@(phi,theta) sqrt((a+r*cos(theta)).^2.*sin(phi).^2 + (R+r*cos(theta)).^2.*cos(phi).^2);
-plot(theta_raw, real(-1i*r./gamma(phi_raw,theta_raw)),'--')
-hold on
-plot(theta_raw, imag(-1i*r./gamma(phi_raw,theta_raw)),'--')
-plot(theta_raw(2:end), real(diff(phi_raw)./(2*pi/length(theta_raw))))
-plot(theta_raw, Df(theta_raw))
+plot(theta_raw, imag(-1i*r./gamma(phi_raw,theta_raw)) -  Df(theta_raw),'.-')
 grid on
-% Circular torus comparison
-dv0 =@(theta) -r./(R + r*cos(theta));
-plot(theta_raw, dv0(theta_raw), '--k')
-hold off
 % LOOKS LIKE Im(f) = -r/gamma (?!)
 
-title('Derivative Matching','Interpreter','latex','FontSize', fs+2)
-xlabel('$\theta$, poloidal coordinate','Interpreter','latex','FontSize', fs)
-ylabel("Im$[f'(\theta)]$, solution derivative",'Interpreter','latex','FontSize', fs)
-legend('RHS (Re)','RHS (Im)','Numerical (Re)', 'Numerical (Im)',"$(-v_0')/c$",'Interpreter','latex','FontSize', fs)
-
-subplot(3,1,3)
-plot(theta_raw, imag(-1i*r./gamma(phi_raw,theta_raw)) -  Df(theta_raw),'.-')
-
-title("Residual, max $=$ "+max(imag(-1i*r./gamma(phi_raw,theta_raw)) -  Df(theta_raw)),'Interpreter','latex','FontSize', fs+2)
+title("Residual, max $=$ "+max(abs(imag(-1i*r./gamma(phi_raw,theta_raw)) -  Df(theta_raw))),'Interpreter','latex','FontSize', fs+2)
 xlabel('$\theta$, poloidal coordinate','Interpreter','latex','FontSize', fs)
 ylabel("RHS - $f'(\theta)$",'Interpreter','latex','FontSize', fs)
 legend('Im','Interpreter','latex','FontSize', fs)
