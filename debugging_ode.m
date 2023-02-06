@@ -9,7 +9,7 @@ fs = 10;
 % SEEMS LIKE THIS CODE MATCHES OG CODE BETTER FOR LARGER ALPHA
 % BATTLE BETWEEN ISOTHERMAL AND THIS (?)
 % Symplectic integrator as a possible fix (?)
-a = 12;
+a = 13;
 R = 11;
 r = 3;
 c = sqrt(R^2 - r^2);
@@ -75,10 +75,12 @@ ylabel("Im$[f'(\theta)]$, solution derivative",'Interpreter','latex','FontSize',
 legend('RHS (Re)','RHS (Im)','Numerical (Re)', 'Numerical (Im)',"$(-v_0')/c$",'Interpreter','latex','FontSize', fs)
 
 subplot(3,1,3)
-title('Residual','Interpreter','latex','FontSize', fs+2)
+plot(theta_raw, imag(-1i*r./gamma(phi_raw,theta_raw)) -  Df(theta_raw),'.-')
+
+title("Residual, max $=$ "+max(imag(-1i*r./gamma(phi_raw,theta_raw)) -  Df(theta_raw)),'Interpreter','latex','FontSize', fs+2)
 xlabel('$\theta$, poloidal coordinate','Interpreter','latex','FontSize', fs)
-ylabel("Im$[f'(\theta)]$, solution derivative",'Interpreter','latex','FontSize', fs)
-legend('RHS (Re)','RHS (Im)','Numerical (Re)', 'Numerical (Im)',"$(-v_0')/c$",'Interpreter','latex','FontSize', fs)
+ylabel("RHS - $f'(\theta)$",'Interpreter','latex','FontSize', fs)
+legend('Im','Interpreter','latex','FontSize', fs)
 
 % Conformal map
 w =@(phi,theta) u(phi) + 1i*v(theta);
