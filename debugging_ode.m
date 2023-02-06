@@ -98,6 +98,7 @@ p = exp(-gr); % nome (for periodicity)
 % ERROR APPEARS TO BE IN CLASSICAL ENERGY CONTRIBUTION (?)
 % IT'S DOING WEIRD JUMPS (?)
 % JUMPS ARE CAUSED BY CROSSING V=+-PI (?)
+% DOES THIS COME FROM THE SQRT IN THE GAMMA FUNCTION (?)
 
 %% Initial conditions for vortices
 % Initial vortex positions in [-pi*c,pi*c]x[cgl,cgr]
