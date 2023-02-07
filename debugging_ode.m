@@ -107,6 +107,13 @@ p = exp(-gr); % nome (for periodicity)
 
 % SUGGESTS ERRORS ARE COMING FROM U,V FED INTO HAMILTONIAN
 % ---> AND THUS FROM ISOTHERMAL ODE (?)
+% MOD-2pi-ing the 'theta' fcn inside of the RHS call (?)
+% ---> 'THETA' OF THINGS BECOMES > PI AFTER WRAPPING (?)
+
+% IS IT THE 'UVWRAPPING' FCN (?)
+% ---> UVwrapping does indeed do weird shit (?)
+
+% MAYBE CENTER-AVERAGE THE RHS NEAR V=+/-PI (?)
 
 %% Initial conditions for vortices
 % Initial vortex positions in [-pi*c,pi*c]x[cgl,cgr]
@@ -143,10 +150,10 @@ y0 = [u1_0, u2_0, v1_0, v2_0];
 %% Change coordinates from numerical solution
 % Vortices in isothermal coordinates
 U = y(:,1:N); % u-coords
-U = UVwrap(U, [-pi*c, pi*c]);
+%U = UVwrap(U, [-pi*c, pi*c]);
 
 V = y(:,(1+N):2*N); % v-coords
-V = UVwrap(V, [c*gl, c*gr]);
+%V = UVwrap(V, [c*gl, c*gr]);
 
 % Full complex coordinate
 W = U + 1i*V;
@@ -244,7 +251,7 @@ function dydx = odefcn(theta, phi, a, R, r)
   dydx = -1i*(r/gamma);
 end
 
-% Wrap U,V to interval
-function wrapped = UVwrap(array, interval)
-    wrapped = mod(array - interval(1), range(interval)) + interval(1);
-end
+% % Wrap U,V to interval
+% function wrapped = UVwrap(array, interval)
+%     wrapped = mod(array - interval(1), range(interval)) + interval(1);
+% end
