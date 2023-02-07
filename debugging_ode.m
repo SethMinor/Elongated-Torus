@@ -99,6 +99,14 @@ p = exp(-gr); % nome (for periodicity)
 % IT'S DOING WEIRD JUMPS (?)
 % JUMPS ARE CAUSED BY CROSSING V=+-PI (?)
 % DOES THIS COME FROM THE SQRT IN THE GAMMA FUNCTION (?)
+% use its derivatives in RHS (?)
+% division by zero problem with sqrt (?)
+
+% QUANTUM TERM CAN ALSO JUMP (?)
+% ACQUIRING ERRORS UPONG VERTICAL WINDINGS (?)
+
+% SUGGESTS ERRORS ARE COMING FROM U,V FED INTO HAMILTONIAN
+% ---> AND THUS FROM ISOTHERMAL ODE (?)
 
 %% Initial conditions for vortices
 % Initial vortex positions in [-pi*c,pi*c]x[cgl,cgr]
