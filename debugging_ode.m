@@ -112,8 +112,16 @@ p = exp(-gr); % nome (for periodicity)
 
 % IS IT THE 'UVWRAPPING' FCN (?)
 % ---> UVwrapping does indeed do weird shit (?)
+% ---> TURNING IT OFF, ENERGY STILL TANKS THO (?)
+
+% WEIRD THETA = 2 ERROR POINT (?)
+% THIS MIGHT BE GNARLY
 
 % MAYBE CENTER-AVERAGE THE RHS NEAR V=+/-PI (?)
+
+% ODE45 VS ODE15S (?)
+
+% IS THIS JUST CUMULATIVE EXPONENTIAL ERROR BUILDING UP (?)
 
 %% Initial conditions for vortices
 % Initial vortex positions in [-pi*c,pi*c]x[cgl,cgr]
@@ -138,7 +146,7 @@ v2_0 = imag(w2_0);
 %% Integrate the equations of motion
 % Set total time and tolerances
 t0 = 0;
-tf = 60;
+tf = 80;
 timespan = [t0, tf];
 options = odeset('RelTol', 1e-13, 'AbsTol', 1e-13);
 
