@@ -9,7 +9,7 @@ fs = 10;
 % SEEMS LIKE THIS CODE MATCHES OG CODE BETTER FOR LARGER ALPHA
 % BATTLE BETWEEN ISOTHERMAL AND THIS (?)
 % Symplectic integrator as a possible fix (?)
-a = 13;
+a = 11;
 R = 11;
 r = 3;
 c = sqrt(R^2 - r^2);
@@ -31,23 +31,41 @@ phi_raw = [-flip(phi_raw(2:end)); phi_raw];
 % Quick plot to verify isothermal solutions look good
 v0 =@(theta) 2*r*atan(sqrt((R-r)/(R+r))*tan(theta/2));
 
+% Numerical isothermal coordinates
 figure (1)
+subplot(2,1,1)
 plot(theta_raw, real(phi_raw))
 hold on
 plot(theta_raw, imag(phi_raw))
 plot(theta_raw, -v0(theta_raw)/c,'--k')
+xline(pi,'-')
+xline(-pi,'-')
 hold off
 grid on
 
-title('Isothermal Coordinates ODE','Interpreter','latex','FontSize', fs+2)
-xlabel('$\theta$','Interpreter','latex','FontSize', fs)
+title('Numerical Isothermal Coordinates','Interpreter','latex','FontSize', fs+2)
+xlabel('$\theta$, poloidal coordinate','Interpreter','latex','FontSize', fs)
 ylabel('$\phi = f(\theta)$ solution','Interpreter','latex','FontSize', fs)
-legend('Re$[f(\theta)]$','Im$[f(\theta)]$','$-v_0/c$','Interpreter','latex','FontSize', fs)
+legend('Re$[f(\theta)]$','Im$[f(\theta)]$','$(-v_0)/c$','Interpreter','latex','FontSize', fs)
 
 % Define (phi,theta) to (u,v) map
-vhelper = fit(theta_raw, imag(phi_raw), 'cubicinterp');
+vhelper = fit(theta_raw, imag(phi_raw), 'cubicinterp'); % phi = f(theta)
 u =@(phi) c*phi;
 v =@(theta) -c*vhelper(theta);
+
+% Check derivative of numerical solution
+D1 = differentiate(vhelper, theta_raw);
+Df = fit(theta_raw, D1, 'cubicinterp');
+
+subplot(2,1,2)
+gamma =@(phi,theta) sqrt((a+r*cos(theta)).^2.*sin(phi).^2 + (R+r*cos(theta)).^2.*cos(phi).^2);
+plot(theta_raw, imag(-1i*r./gamma(phi_raw,theta_raw)) -  Df(theta_raw),'.-')
+grid on
+
+title("Residual, max $=$ "+max(abs(imag(-1i*r./gamma(phi_raw,theta_raw)) -  Df(theta_raw))),'Interpreter','latex','FontSize', fs+2)
+xlabel('$\theta$, poloidal coordinate','Interpreter','latex','FontSize', fs)
+ylabel("RHS - $f'(\theta)$",'Interpreter','latex','FontSize', fs)
+legend('Im','Interpreter','latex','FontSize', fs)
 
 % Conformal map
 w =@(phi,theta) u(phi) + 1i*v(theta);
@@ -55,11 +73,12 @@ w =@(phi,theta) u(phi) + 1i*v(theta);
 % Defining the (u,v) to (phi,theta) map
 ginv = fit(imag(phi_raw), theta_raw, 'cubicinterp');
 phi =@(u) u/c;
-theta =@(v) ginv(-v/c);
+%theta =@(v) ginv(-v/c);
+theta =@(v) ginv(-UVwrap(v, [-pi*r, pi*r])/c);
 
 % Define the derivative of g_inverse
-D = differentiate(ginv, imag(phi_raw));
-Dginv = fit(imag(phi_raw), D, 'cubicinterp');
+D2 = differentiate(ginv, imag(phi_raw));
+Dginv = fit(imag(phi_raw), D2, 'cubicinterp');
 
 % Define gl and gr
 gl = min(imag(phi_raw));
@@ -111,9 +130,13 @@ y0 = [u1_0, u2_0, v1_0, v2_0];
 %% Change coordinates from numerical solution
 % Vortices in isothermal coordinates
 U = y(:,1:N); % u-coords
-U = UVwrap(U, [-pi*c, pi*c]);
-
 V = y(:,(1+N):2*N); % v-coords
+
+% Compute energy (before UVwrap)
+[energy,classic,curve,quantum] = hamiltonian_v2(U,V,N,q,p,c,r,a,R,cap,phi,theta,gr);
+
+% Unwrap
+U = UVwrap(U, [-pi*c, pi*c]);
 V = UVwrap(V, [c*gl, c*gr]);
 
 % Full complex coordinate
@@ -181,7 +204,7 @@ title('3D Cartesian (Physical Path)','Interpreter','latex','FontSize',fs)
 
 %% Display Hamiltonian
 % Compute total energy
-[energy,classic,curve,quantum] = hamiltonian_v2(U,V,N,q,p,c,r,a,R,cap,phi,theta,gr);
+%[energy,classic,curve,quantum] = hamiltonian_v2(U,V,N,q,p,c,r,a,R,cap,phi,theta,gr);
 energy_time = linspace(t0,tf,length(energy));
 
 figure (4);
@@ -212,7 +235,7 @@ function dydx = odefcn(theta, phi, a, R, r)
   dydx = -1i*(r/gamma);
 end
 
-% Wrap U,V to interval
-function wrapped = UVwrap(array, interval)
-    wrapped = mod(array - interval(1), range(interval)) + interval(1);
-end
+% % Wrap U,V to interval
+% function wrapped = UVwrap(array, interval)
+%     wrapped = mod(array - interval(1), range(interval)) + interval(1);
+% end
