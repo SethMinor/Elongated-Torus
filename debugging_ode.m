@@ -118,6 +118,7 @@ p = exp(-gr); % nome (for periodicity)
 % MAYBE UVWRAPPING INSIDE OF RHS FUNCTION (?)
 % ---> seems to help a bit (?)
 % ---> this DOES change the orbits
+% ---> old code doesn't wrap inside RHS (?)
 
 % MAYBE CENTER-AVERAGE THE RHS NEAR V=+/-PI (?)
 
