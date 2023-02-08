@@ -123,6 +123,8 @@ p = exp(-gr); % nome (for periodicity)
 
 % IS THIS JUST CUMULATIVE EXPONENTIAL ERROR BUILDING UP (?)
 
+% IS THE SOLUTION TO ALL THIS MAKING theta_span = [0, > pi]; (?)
+
 %% Initial conditions for vortices
 % Initial vortex positions in [-pi*c,pi*c]x[cgl,cgr]
 % [-pi*c,pi*c] = [-33.2475, 33.2475]
