@@ -75,7 +75,8 @@ w =@(phi,theta) u(phi) + 1i*v(theta);
 % Defining the (u,v) to (phi,theta) map
 ginv = fit(imag(phi_raw), theta_raw, 'cubicinterp');
 phi =@(u) u/c;
-theta =@(v) ginv(-v/c);
+%theta =@(v) ginv(-v/c);
+theta =@(v) ginv(-UVwrap(v, [-pi*r, pi*r])/c);
 
 % Define the derivative of g_inverse
 D2 = differentiate(ginv, imag(phi_raw));
@@ -119,8 +120,19 @@ p = exp(-gr); % nome (for periodicity)
 % ---> seems to help a bit (?)
 % ---> this DOES change the orbits
 % ---> Looks like gamma(u,v) != gamma(u,v+2*pi*r) when it should (?)
-% ---> this is b/c theta(v) != theta(v + 2*pi*r) when it should (?)
+% ---> affects curvature term in RHS (?)
+% ---> this is b/c theta(v) != theta(v + 2*pi*r) when it should (nah?)
+% analytical theta = 2*arctan(sqrt(...)*tan(v/2r))
 % Is this b/c of cubic interp fitting (?)
+% Need to make the 'theta(v)' fcn 2*pi*r = 2*c*gr periodic (?)
+% ---> could just do theta = ... UVwrap(v,2*pi*r)... (?)
+
+% Fixes (?):
+% Use 'theta =@(v) ginv(-UVwrap(v, [-pi*r, pi*r])/c);' (?)
+% In RHS, UVwrap V but NOT U (?)
+% ---> seems to fix (?)
+
+% Is this also gonna be a problem for u/phi (?)
 
 % MAYBE CENTER-AVERAGE THE RHS NEAR V=+/-PI (?)
 
@@ -131,8 +143,8 @@ p = exp(-gr); % nome (for periodicity)
 % Initial vortex positions in [-pi*c,pi*c]x[cgl,cgr]
 % [-pi*c,pi*c] = [-33.2475, 33.2475]
 % [cgl,cgr] = [-10.5830, 10.5830]
-w1_0 = (0) + 1i*(8); % positive vortex
-w2_0 = (0) + 1i*(-6); % negative vortex
+w1_0 = (-1) + 1i*(8); % positive vortex
+w2_0 = (-1) + 1i*(-6); % negative vortex
 
 % Vortex charges
 q1 = 1;
@@ -150,7 +162,7 @@ v2_0 = imag(w2_0);
 %% Integrate the equations of motion
 % Set total time and tolerances
 t0 = 0;
-tf = 150;
+tf = 300;
 timespan = [t0, tf];
 options = odeset('RelTol', 1e-13, 'AbsTol', 1e-13);
 
@@ -164,9 +176,10 @@ y0 = [u1_0, u2_0, v1_0, v2_0];
 U = y(:,1:N); % u-coords
 V = y(:,(1+N):2*N); % v-coords
 
-% Compute neergy (before UVwrap)
+% Compute energy (before UVwrap)
 [energy,classic,curve,quantum] = hamiltonian_v2(U,V,N,q,p,c,r,a,R,cap,phi,theta,gr);
 
+% Unwrap
 U = UVwrap(U, [-pi*c, pi*c]);
 V = UVwrap(V, [c*gl, c*gr]);
 
