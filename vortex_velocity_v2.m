@@ -22,6 +22,9 @@ U = y0(1:N);
 V = y0((N+1):2*N);
 W = U + 1i*V;
 
+%U = UVwrap(U, [-pi*c, pi*c]); % Leave this commented-out (?)
+V = UVwrap(V, [-c*gr, c*gr]);
+
 % Gamma and derivatives
 gamma =@(phi,theta) sqrt((a+r*cos(theta)).^2.*sin(phi).^2 + (R+r*cos(theta)).^2.*cos(phi).^2);
 gamma_phi = @(phi,theta) (a-R)*(a+R+2*r*cos(theta)).*cos(phi).*sin(phi)./gamma(phi,theta);
