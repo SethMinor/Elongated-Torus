@@ -21,7 +21,7 @@ phi_0 = 0;
 
 % Numerical integration using ode45
 theta_span = [0, pi];
-%theta_span = [0, pi-0.01];
+%theta_span = [0, pi+-0.01];
 options = odeset('RelTol', 3e-14, 'AbsTol', 3e-14);
 [theta_raw,phi_raw] = ode15s(@(theta,phi) odefcn(theta,phi,a,R,r), theta_span, phi_0, options);
 
@@ -32,6 +32,7 @@ phi_raw = [-flip(phi_raw(2:end)); phi_raw];
 % Quick plot to verify isothermal solutions look good
 v0 =@(theta) 2*r*atan(sqrt((R-r)/(R+r))*tan(theta/2));
 
+% Numerical isothermal coordinates
 figure (1)
 subplot(2,1,1)
 plot(theta_raw, real(phi_raw))
@@ -43,17 +44,17 @@ xline(-pi,'-')
 hold off
 grid on
 
-title('Isothermal Coordinates ODE','Interpreter','latex','FontSize', fs+2)
+title('Numerical Isothermal Coordinates','Interpreter','latex','FontSize', fs+2)
 xlabel('$\theta$, poloidal coordinate','Interpreter','latex','FontSize', fs)
 ylabel('$\phi = f(\theta)$ solution','Interpreter','latex','FontSize', fs)
 legend('Re$[f(\theta)]$','Im$[f(\theta)]$','$(-v_0)/c$','Interpreter','latex','FontSize', fs)
 
 % Define (phi,theta) to (u,v) map
-vhelper = fit(theta_raw, imag(phi_raw), 'cubicinterp');
+vhelper = fit(theta_raw, imag(phi_raw), 'cubicinterp'); % phi = f(theta)
 u =@(phi) c*phi;
 v =@(theta) -c*vhelper(theta);
 
-% Check residuals/derivatives
+% Check derivative of numerical solution
 D1 = differentiate(vhelper, theta_raw);
 Df = fit(theta_raw, D1, 'cubicinterp');
 
@@ -111,19 +112,17 @@ p = exp(-gr); % nome (for periodicity)
 % ---> 'THETA' OF THINGS BECOMES > PI AFTER WRAPPING (?)
 
 % IS IT THE 'UVWRAPPING' FCN (?)
-% ---> UVwrapping does indeed do weird shit (?)
+% Orbits are different with UVwrapping on/off (?)
 % ---> TURNING IT OFF, ENERGY STILL TANKS THO (?)
 
-% WEIRD THETA = 2 ERROR POINT (?)
-% THIS MIGHT BE GNARLY
+% MAYBE UVWRAPPING INSIDE OF RHS FUNCTION (?)
+% ---> seems to help a bit (?)
+% ---> this DOES change the orbits
 
 % MAYBE CENTER-AVERAGE THE RHS NEAR V=+/-PI (?)
 
-% ODE45 VS ODE15S (?)
-
-% IS THIS JUST CUMULATIVE EXPONENTIAL ERROR BUILDING UP (?)
-
 % IS THE SOLUTION TO ALL THIS MAKING theta_span = [0, > pi]; (?)
+% ---> maybe cubic interpolation acting up after theta = pi (?)
 
 %% Initial conditions for vortices
 % Initial vortex positions in [-pi*c,pi*c]x[cgl,cgr]
@@ -148,7 +147,7 @@ v2_0 = imag(w2_0);
 %% Integrate the equations of motion
 % Set total time and tolerances
 t0 = 0;
-tf = 80;
+tf = 150;
 timespan = [t0, tf];
 options = odeset('RelTol', 1e-13, 'AbsTol', 1e-13);
 
@@ -160,10 +159,13 @@ y0 = [u1_0, u2_0, v1_0, v2_0];
 %% Change coordinates from numerical solution
 % Vortices in isothermal coordinates
 U = y(:,1:N); % u-coords
-%U = UVwrap(U, [-pi*c, pi*c]);
-
 V = y(:,(1+N):2*N); % v-coords
-%V = UVwrap(V, [c*gl, c*gr]);
+
+% Compute neergy (before UVwrap)
+[energy,classic,curve,quantum] = hamiltonian_v2(U,V,N,q,p,c,r,a,R,cap,phi,theta,gr);
+
+U = UVwrap(U, [-pi*c, pi*c]);
+V = UVwrap(V, [c*gl, c*gr]);
 
 % Full complex coordinate
 W = U + 1i*V;
@@ -230,7 +232,7 @@ title('3D Cartesian (Physical Path)','Interpreter','latex','FontSize',fs)
 
 %% Display Hamiltonian
 % Compute total energy
-[energy,classic,curve,quantum] = hamiltonian_v2(U,V,N,q,p,c,r,a,R,cap,phi,theta,gr);
+%[energy,classic,curve,quantum] = hamiltonian_v2(U,V,N,q,p,c,r,a,R,cap,phi,theta,gr);
 energy_time = linspace(t0,tf,length(energy));
 
 figure (4);
