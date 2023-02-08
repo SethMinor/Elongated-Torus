@@ -21,6 +21,7 @@ phi_0 = 0;
 
 % Numerical integration using ode45
 theta_span = [0, pi];
+%theta_span = [0, pi+-0.01];
 options = odeset('RelTol', 3e-14, 'AbsTol', 3e-14);
 [theta_raw,phi_raw] = ode15s(@(theta,phi) odefcn(theta,phi,a,R,r), theta_span, phi_0, options);
 
@@ -61,6 +62,7 @@ subplot(2,1,2)
 gamma =@(phi,theta) sqrt((a+r*cos(theta)).^2.*sin(phi).^2 + (R+r*cos(theta)).^2.*cos(phi).^2);
 plot(theta_raw, imag(-1i*r./gamma(phi_raw,theta_raw)) -  Df(theta_raw),'.-')
 grid on
+% LOOKS LIKE Im(f) = -r/gamma (?!)
 
 title("Residual, max $=$ "+max(abs(imag(-1i*r./gamma(phi_raw,theta_raw)) -  Df(theta_raw))),'Interpreter','latex','FontSize', fs+2)
 xlabel('$\theta$, poloidal coordinate','Interpreter','latex','FontSize', fs)
@@ -70,19 +72,19 @@ legend('Im','Interpreter','latex','FontSize', fs)
 % Conformal map
 w =@(phi,theta) u(phi) + 1i*v(theta);
 
+% Define gl and gr
+gl = min(imag(phi_raw));
+gr = max(imag(phi_raw));
+
 % Defining the (u,v) to (phi,theta) map
 ginv = fit(imag(phi_raw), theta_raw, 'cubicinterp');
 phi =@(u) u/c;
 %theta =@(v) ginv(-v/c);
-theta =@(v) ginv(-UVwrap(v, [-pi*r, pi*r])/c);
+theta =@(v) ginv(-UVwrap(v, [-c*gr, c*gr])/c);
 
 % Define the derivative of g_inverse
 D2 = differentiate(ginv, imag(phi_raw));
 Dginv = fit(imag(phi_raw), D2, 'cubicinterp');
-
-% Define gl and gr
-gl = min(imag(phi_raw));
-gr = max(imag(phi_raw));
 
 %% Other parameters
 % Gamma quantity
