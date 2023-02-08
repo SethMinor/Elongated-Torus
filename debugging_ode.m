@@ -118,7 +118,9 @@ p = exp(-gr); % nome (for periodicity)
 % MAYBE UVWRAPPING INSIDE OF RHS FUNCTION (?)
 % ---> seems to help a bit (?)
 % ---> this DOES change the orbits
-% ---> old code doesn't wrap inside RHS (?)
+% ---> Looks like gamma(u,v) != gamma(u,v+2*pi*r) when it should (?)
+% ---> this is b/c theta(v) != theta(v + 2*pi*r) when it should (?)
+% Is this b/c of cubic interp fitting (?)
 
 % MAYBE CENTER-AVERAGE THE RHS NEAR V=+/-PI (?)
 
