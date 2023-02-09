@@ -187,7 +187,7 @@ figure (4)
 
 % Physical trajectory in isothermal coordinates
 subplot(3,1,1)
-plot(U,V,'-')
+plot(U,V,'.')
 grid on
 xlabel('$u = $Re$(w)$','Interpreter','latex','FontSize',fs)
 ylabel('$v = $Im$(w)$','Interpreter','latex','FontSize',fs)
