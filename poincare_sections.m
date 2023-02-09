@@ -168,7 +168,7 @@ for u1pert = 14:0.2:22
                     hold on
     
                     figure (4)
-                    plot3(Theta_e(:,1), Theta_e(:,2),Phi_e(:,1),'.')
+                    plot3(Theta_e(:,1), Theta_e(:,2),Phi_e(:,1),'.','MarkerSize',3)
                     xlabel('\theta_1')
                     ylabel('\theta_2')
                     zlabel('\phi_1 = \phi_2')
