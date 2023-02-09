@@ -21,7 +21,6 @@ phi_0 = 0;
 
 % Numerical integration using ode45
 theta_span = [0, pi];
-%theta_span = [0, pi+-0.01];
 options = odeset('RelTol', 3e-14, 'AbsTol', 3e-14);
 [theta_raw,phi_raw] = ode15s(@(theta,phi) odefcn(theta,phi,a,R,r), theta_span, phi_0, options);
 
