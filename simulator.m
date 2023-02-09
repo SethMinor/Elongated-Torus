@@ -62,7 +62,6 @@ subplot(2,1,2)
 gamma =@(phi,theta) sqrt((a+r*cos(theta)).^2.*sin(phi).^2 + (R+r*cos(theta)).^2.*cos(phi).^2);
 plot(theta_raw, imag(-1i*r./gamma(phi_raw,theta_raw)) -  Df(theta_raw),'.-')
 grid on
-% LOOKS LIKE Im(f) = -r/gamma (?!)
 
 title("Residual, max $=$ "+max(abs(imag(-1i*r./gamma(phi_raw,theta_raw)) -  Df(theta_raw))),'Interpreter','latex','FontSize', fs+2)
 xlabel('$\theta$, poloidal coordinate','Interpreter','latex','FontSize', fs)
@@ -101,8 +100,8 @@ p = exp(-gr); % nome (for periodicity)
 % Initial vortex positions in [-pi*c,pi*c]x[cgl,cgr]
 % [-pi*c,pi*c] = [-33.2475, 33.2475]
 % [cgl,cgr] = [-10.5830, 10.5830]
-w1_0 = (15.5) + 1i*(5.0); % positive vortex
-w2_0 = (15.0) + 1i*(-4.0); % negative vortex
+w1_0 = (0) + 1i*(8); % positive vortex
+w2_0 = (0) + 1i*(-6); % negative vortex
 
 % Vortex charges
 q1 = 1;
@@ -120,7 +119,7 @@ v2_0 = imag(w2_0);
 %% Integrate the equations of motion
 % Set total time and tolerances
 t0 = 0;
-tf = 1000;
+tf = 300;
 timespan = [t0, tf];
 options = odeset('RelTol', 1e-13, 'AbsTol', 1e-13);
 
@@ -162,7 +161,7 @@ figure (2)
 
 % Isothermal orbit
 subplot(2,1,1)
-plot(U,V)
+plot(U,V,'.')
 grid on
 xlabel('$u = $Re$(w)$','Interpreter','latex','FontSize',fs)
 ylabel('$v = $Im$(w)$','Interpreter','latex','FontSize',fs)
@@ -236,8 +235,3 @@ function dydx = odefcn(theta, phi, a, R, r)
   gamma = sqrt((a+r*cos(theta)).^2.*sin(phi).^2 + (R+r*cos(theta)).^2.*cos(phi).^2);
   dydx = -1i*(r/gamma);
 end
-
-% % Wrap U,V to interval
-% function wrapped = UVwrap(array, interval)
-%     wrapped = mod(array - interval(1), range(interval)) + interval(1);
-% end
