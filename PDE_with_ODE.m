@@ -224,6 +224,7 @@ legend('Total, $H$','Classic','Curvature','Quantum','Interpreter','latex')
 % CFL is something like dt < (dx)^2/sqrt(2) for 2D
 %dt = 0.0005;
 dt = 0.001;
+% dt = 0.005 % Largest dt found to still work
 N_time = floor(tf/dt);
 
 % Local scale factor
