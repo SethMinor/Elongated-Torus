@@ -111,7 +111,7 @@ tf = 5000;
 timespan = [t0, tf];
 options = odeset('RelTol', 1e-11, 'AbsTol', 1e-11, 'Events', @EventsFcn);
 
-for u1pert = 14%14:0.2:15
+for u1pert = 14:0.2:22
     for u2pert = 14
         for v1pert = 5
             for v2pert = -5
@@ -136,53 +136,55 @@ for u1pert = 14%14:0.2:15
                 [T,Y,Te,Ye,Ie] = ode15s(@(t,y) vortex_velocity_v2(0,y,0,N,q,r,a,R,c,p,cap,theta,Dginv,gr),...
                     timespan, y0, options);
                 
-                % Plot Poincare section
-                % Coordinates at Poincare crossings
-                Ue = Ye(:,1:N); % u-coords
-                Ue = UVwrap(Ue, [-pi*c, pi*c]);
-                
-                Ve = Ye(:,(1+N):2*N); % v-coords
-                Ve = UVwrap(Ve, [c*gl, c*gr]);
-                
-                % Conversion to toroidal-poloidal coordinates
-                Phi_e = Ue./c;
-                Theta_e = [theta(Ve(:,1)), theta(Ve(:,2))];
-                
-                % Poincare section
-                figure (3)
-                sgtitle('Poincare Sections')
-                subplot (2,1,1)
-                plot(Phi_e(:,1), Phi_e(:,2),'.')
-                xlabel('\phi_1')
-                ylabel('\phi_2')
-                xlim([-pi, pi])
-                ylim([-pi, pi])
-                
-                subplot (2,1,2)
-                plot(Theta_e(:,1), Theta_e(:,2),'.')
-                xlabel('\theta_1')
-                ylabel('\theta_2')
-                xlim([-pi, pi])
-                ylim([-pi, pi])
-                hold on
-
-                figure (4)
-                plot3(Theta_e(:,1), Theta_e(:,2),Phi_e(:,1),'.')
-                xlabel('\theta_1')
-                ylabel('\theta_2')
-                zlabel('\phi_1 = \phi_2')
-                xlim([-pi, pi])
-                ylim([-pi, pi])
-                zlim([-pi, pi])
-                title("$w_1 =$ "+u1_0+"+("+v1_0+")$i$, with "+"$w_2 =$ "+u2_0+"+("+v2_0+")$i$",...
-                    'Interpreter','latex','FontSize',fs)
-                grid on
-                hold on
-
-                % Export images to folder
-                if export_bool == true
-                    file_name = sprintf('Poincare_%d.png', plot_counter);
-                    exportgraphics(gcf,strcat(working_dir,file_name));
+                if isempty(Ye) == 0
+                    % Plot Poincare section
+                    % Coordinates at Poincare crossings
+                    Ue = Ye(:,1:N); % u-coords
+                    Ue = UVwrap(Ue, [-pi*c, pi*c]);
+                    
+                    Ve = Ye(:,(1+N):2*N); % v-coords
+                    Ve = UVwrap(Ve, [c*gl, c*gr]);
+                    
+                    % Conversion to toroidal-poloidal coordinates
+                    Phi_e = Ue./c;
+                    Theta_e = [theta(Ve(:,1)), theta(Ve(:,2))];
+                    
+                    % Poincare section
+                    figure (3)
+                    sgtitle('Poincare Sections')
+                    subplot (2,1,1)
+                    plot(Phi_e(:,1), Phi_e(:,2),'.')
+                    xlabel('\phi_1')
+                    ylabel('\phi_2')
+                    xlim([-pi, pi])
+                    ylim([-pi, pi])
+                    
+                    subplot (2,1,2)
+                    plot(Theta_e(:,1), Theta_e(:,2),'.')
+                    xlabel('\theta_1')
+                    ylabel('\theta_2')
+                    xlim([-pi, pi])
+                    ylim([-pi, pi])
+                    hold on
+    
+                    figure (4)
+                    plot3(Theta_e(:,1), Theta_e(:,2),Phi_e(:,1),'.')
+                    xlabel('\theta_1')
+                    ylabel('\theta_2')
+                    zlabel('\phi_1 = \phi_2')
+                    xlim([-pi, pi])
+                    ylim([-pi, pi])
+                    zlim([-pi, pi])
+                    title("$w_1 =$ "+u1_0+"+("+v1_0+")$i$, with "+"$w_2 =$ "+u2_0+"+("+v2_0+")$i$",...
+                        'Interpreter','latex','FontSize',fs)
+                    grid on
+                    hold on
+    
+                    % Export images to folder
+                    if export_bool == true
+                        file_name = sprintf('Poincare_%d.png', plot_counter);
+                        exportgraphics(gcf,strcat(working_dir,file_name));
+                    end
                 end
                 % Finito
             end
