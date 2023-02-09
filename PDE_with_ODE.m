@@ -273,7 +273,7 @@ mass = [];
 
 for i = 0:N_time
     % Plot every 0.5ish seconds
-    if mod(i,100) == 0
+    if mod(i,1000) == 0
         plot_counter = plot_counter + 1;
         figure (6)
         %disp('Plotting frame')
