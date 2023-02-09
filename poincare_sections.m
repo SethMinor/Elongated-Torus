@@ -93,22 +93,35 @@ p = exp(-gr); % nome (for periodicity)
 
 
 %% Giant for-loop over ICs
-for u1pert = -6:0.1:6
-    for u2pert = -10:0.1:10
-        for v1pert = -5:0.1:0
-            for v2pert = 0:0.1:5
+% Want to export images?
+export_bool = true;
+working_dir = 'C:\Users\sminor2848\Downloads\Elongated-Torus-main\Elongated-Torus-main\pics\';
+
+plot_counter = 0;
+
+% Vortex charges
+q1 = 1;
+q2 = -1;
+q = [q1 q2];   % vector of vortex charges
+N = length(q); % keeping track of number of vortices
+
+% ode45 with events function
+t0 = 0;
+tf = 5000;
+timespan = [t0, tf];
+options = odeset('RelTol', 1e-11, 'AbsTol', 1e-11, 'Events', @EventsFcn);
+
+for u1pert = 14%14:0.2:15
+    for u2pert = 14
+        for v1pert = 5
+            for v2pert = -5
+                plot_counter = plot_counter + 1;
                 % Initial conditions for vortices
                 % Initial vortex positions in [-pi*c,pi*c]x[cgl,cgr]
                 % [-pi*c,pi*c] = [-33.2475, 33.2475]
                 % [cgl,cgr] = [-10.5830, 10.5830]
                 w1_0 = (u1pert) + 1i*(v1pert); % positive vortex
                 w2_0 = (u2pert) + 1i*(v2pert); % negative vortex
-                
-                % Vortex charges
-                q1 = 1;
-                q2 = -1;
-                q = [q1 q2];   % vector of vortex charges
-                N = length(q); % keeping track of number of vortices
                 
                 % real and imaginary parts of isothermal coords
                 u1_0 = real(w1_0);
@@ -118,39 +131,10 @@ for u1pert = -6:0.1:6
                 v2_0 = imag(w2_0);
             
                 % Compute Poincare sections
-                % ode45 with events function
-                t0 = 0;
-                tf = 1500;
-                timespan = [t0, tf];
-                options = odeset('RelTol', 1e-11, 'AbsTol', 1e-11, 'Events', @EventsFcn);
-                
                 % Numerical integration using ode45 or ode15s
                 y0 = [u1_0, u2_0, v1_0, v2_0];
                 [T,Y,Te,Ye,Ie] = ode15s(@(t,y) vortex_velocity_v2(0,y,0,N,q,r,a,R,c,p,cap,theta,Dginv,gr),...
                     timespan, y0, options);
-                
-                % Change coordinates from numerical solution
-                % Vortices in isothermal coordinates
-                U = Y(:,1:N); % u-coords
-                U = UVwrap(U, [-pi*c, pi*c]);
-                
-                V = Y(:,(1+N):2*N); % v-coords
-                V = UVwrap(V, [c*gl, c*gr]);
-                
-                % Plot integrated solution
-                % Some nice RGB colores
-                bluey = [0 0.4470 0.7410];
-                orangu = [0.8500 0.3250 0.0980];
-                
-                % Isothermal orbit
-                figure (2)
-                plot(U,V,'.','MarkerSize',2)
-                grid on
-                xlabel('$u = $Re$(w)$','Interpreter','latex','FontSize',fs)
-                ylabel('$v = $Im$(w)$','Interpreter','latex','FontSize',fs)
-                title('Isothermal Coordinates','Interpreter','latex','FontSize',fs)
-                xlim([-pi*c, pi*c])
-                ylim([c*gl, c*gr])
                 
                 % Plot Poincare section
                 % Coordinates at Poincare crossings
@@ -166,8 +150,41 @@ for u1pert = -6:0.1:6
                 
                 % Poincare section
                 figure (3)
+                sgtitle('Poincare Sections')
+                subplot (2,1,1)
                 plot(Phi_e(:,1), Phi_e(:,2),'.')
+                xlabel('\phi_1')
+                ylabel('\phi_2')
+                xlim([-pi, pi])
+                ylim([-pi, pi])
+                
+                subplot (2,1,2)
+                plot(Theta_e(:,1), Theta_e(:,2),'.')
+                xlabel('\theta_1')
+                ylabel('\theta_2')
+                xlim([-pi, pi])
+                ylim([-pi, pi])
                 hold on
+
+                figure (4)
+                plot3(Theta_e(:,1), Theta_e(:,2),Phi_e(:,1),'.')
+                xlabel('\theta_1')
+                ylabel('\theta_2')
+                zlabel('\phi_1 = \phi_2')
+                xlim([-pi, pi])
+                ylim([-pi, pi])
+                zlim([-pi, pi])
+                title("$w_1 =$ "+u1_0+"+("+v1_0+")$i$, with "+"$w_2 =$ "+u2_0+"+("+v2_0+")$i$",...
+                    'Interpreter','latex','FontSize',fs)
+                grid on
+                hold on
+
+                % Export images to folder
+                if export_bool == true
+                    file_name = sprintf('Poincare_%d.png', plot_counter);
+                    exportgraphics(gcf,strcat(working_dir,file_name));
+                end
+                % Finito
             end
         end
     end
@@ -189,14 +206,15 @@ function [position,isterminal,direction] = EventsFcn(~,y)
   c = sqrt(R^2-r^2);
   gr = 1.0345;
   % Isothermal coordinates
-  %U = y(1:2);
-  %U = UVwrap(U, [-pi*c, pi*c]);
+  U = y(1:2);
+  U = UVwrap(U, [-pi*c, pi*c]);
   V = y(3:4);
   V = UVwrap(V, [-c*gr, c*gr]);
   % Toroidal-poloidal cooridnates
   %Phi = U./c;
   % Poincare section
-  position = V(1) + V(2);
+  %position = V(1) + V(2); % theta1 = -theta2
+  position = U(1) - U(2); % phi1 = phi2
   isterminal = 0;  % Halt integration 
   direction = 0;   % The zero can be approached from either direction
 end
