@@ -271,6 +271,49 @@ for i = 1:2*N
     Lyapunov(i) = sum(log_r_list(:,i))./tf;
 end
 
+% Plot the spectrum
+figure (5)
+sgtitle('Lyapunov Spectrum','Interpreter','latex','FontSize',fs+2)
+subplot(4,1,1)
+plot(log_r_list(:,1)./t((end-length(log_r_list)+1):end))
+hold on
+yline(Lyapunov(1),'--k')
+hold off
+grid on
+xlabel('$n$','Interpreter','latex','FontSize',fs)
+ylabel('$(\lambda_1)^n$','Interpreter','latex','FontSize',fs)
+title("$\lambda_1=$ "+Lyapunov(1),'Interpreter','latex','FontSize',fs)
+
+subplot(4,1,2)
+plot(log_r_list(:,2)./t((end-length(log_r_list)+1):end))
+hold on
+yline(Lyapunov(2),'--k')
+hold off
+grid on
+xlabel('$n$','Interpreter','latex','FontSize',fs)
+ylabel('$(\lambda_2)^n$','Interpreter','latex','FontSize',fs)
+title("$\lambda_2=$ "+Lyapunov(2),'Interpreter','latex','FontSize',fs)
+
+subplot(4,1,3)
+plot(log_r_list(:,3)./t((end-length(log_r_list)+1):end))
+hold on
+yline(Lyapunov(3),'--k')
+hold off
+grid on
+xlabel('$n$','Interpreter','latex','FontSize',fs)
+ylabel('$(\lambda_3)^n$','Interpreter','latex','FontSize',fs)
+title("$\lambda_3=$ "+Lyapunov(3),'Interpreter','latex','FontSize',fs)
+
+subplot(4,1,4)
+plot(log_r_list(:,4)./t((end-length(log_r_list)+1):end))
+hold on
+yline(Lyapunov(4),'--k')
+hold off
+grid on
+xlabel('$n$','Interpreter','latex','FontSize',fs)
+ylabel('$(\lambda_4)^n$','Interpreter','latex','FontSize',fs)
+title("$\lambda_4=$ "+Lyapunov(4),'Interpreter','latex','FontSize',fs)
+
 %% Function definitions
 % RHS of nonlinear isothermal coords ODE
 function dydx = odefcn(theta, phi, a, R, r)
