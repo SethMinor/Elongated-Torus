@@ -118,7 +118,7 @@ v2_0 = imag(w2_0);
 %% Integrate the equations of motion
 % Set total time and tolerances
 t0 = 0;
-tf = 300;
+tf = 150;
 timespan = [t0, tf];
 options = odeset('RelTol', 1e-13, 'AbsTol', 1e-13);
 
@@ -229,19 +229,35 @@ ylabel('Energy contributions','Interpreter','latex')
 legend('Total, $H$','Classic','Curvature','Quantum','Interpreter','latex')
 
 %% Compute Lyapunov exponents
-% Roll through 'y_n' solution and store J_n
-skip_every = 10;
+% Roll through 'y_n' solution and store {r^n} values
+skip_every = 1;
+
+% Define the RHS
+F =@(W) vortex_velocity_v2(0,[W(1), W(2), W(3), W(4)],0,N,q,r,a,R,c,p,cap,theta,Dginv,gr);
 
 % Compute Jacobian at y_n
-J_list = [];
+r_list = []; % singular values
+Q = zeros(2*N); % Initialize Q_0
 
-i = 1;
-while i < (length(y) - skip_every)
-    % Define the RHS
-    F =@(W) vortex_velocity_v2(0,[W(1), W(2), W(3), W(4)],0,N,q,r,a,R,c,p,cap,theta,Dginv,gr);
-    J_list(:,:,i) = myjacobian(F,y);
-    i = 1 + skip_every;
-end
+apple = myjacobian(F, y(1,:));
+
+% Modified Gram-Schmidt QR
+% See this hoss
+% https://www.mathworks.com/matlabcentral/fileexchange/55881-gram-schmidt-orthogonalization
+
+[Q, R] = Gram_Schmidt_QR(apple);
+
+% i = 1;
+% for i = 1:skip_every:2
+%     % Compute J_n
+%     J = myjacobian(F, y(i,:));
+% 
+%     % Modified-QR factorize this guy (?)
+%     %[Qnew, Rnew] = QR(Jn*Qn)
+% 
+%     % Next iteration
+%     i = 1 + skip_every;
+% end
 
 %% Function definitions
 % RHS of nonlinear isothermal coords ODE
@@ -267,4 +283,26 @@ function J = myjacobian(func,x)
         J(:,i) = (feval(func,xperturb) - F_at_x)/epsilon;
         xperturb(i) = x(i);
     end
+end
+
+% Modified Gram-Schmidt QR, for Lyapunov exponents
+% https://www.mathworks.com/matlabcentral/fileexchange/55881-gram-schmidt-orthogonalization
+function [Q, R] = Gram_Schmidt_QR(X)
+    % Modified Gram-Schmidt orthonormalization (numerical stable version of Gram-Schmidt algorithm) 
+    % which produces the same result as [Q,R]=qr(X,0)
+    % Written by Mo Chen (sth4nth@gmail.com).
+    [d,n] = size(X);
+    m = min(d,n);
+    R = zeros(m,n);
+    Q = zeros(d,m);
+    for i = 1:m
+        v = X(:,i);
+        for j = 1:i-1
+            R(j,i) = Q(:,j)'*v;
+            v = v-R(j,i)*Q(:,j);
+        end
+        R(i,i) = norm(v);
+        Q(:,i) = v/R(i,i);
+    end
+    R(:,m+1:n) = Q'*X(:,m+1:n);
 end
