@@ -118,7 +118,7 @@ v2_0 = imag(w2_0);
 %% Integrate the equations of motion
 % Set total time and tolerances
 t0 = 0;
-tf = 150;
+tf = 500;
 timespan = [t0, tf];
 options = odeset('RelTol', 1e-13, 'AbsTol', 1e-13);
 
@@ -236,28 +236,39 @@ skip_every = 1;
 F =@(W) vortex_velocity_v2(0,[W(1), W(2), W(3), W(4)],0,N,q,r,a,R,c,p,cap,theta,Dginv,gr);
 
 % Compute Jacobian at y_n
-r_list = []; % singular values
+%r_list = []; % singular values
 Q_n = zeros(2*N); % Initialize Q_0
 
 % Compute {r^n}'s
-for i = 1:skip_every:100
+tic
+for n = 2:skip_every:length(y)
     % Compute J_n
-    J = myjacobian(F, y(i,:));
+    J = myjacobian(F, y(n,:));
 
     % Modified GS QR this guy (?)
     %[Qnew, Rnew] = QR(Jn*Qn)
-    [Qnew, R] = Gram_Schmidt_QR(J);
+    [Q_new, R] = Gram_Schmidt_QR(J);
 
     % Extract singular value = diags(R) (?)
-    r_list(i,:) = diag(R);
+    r_list(n,:) = diag(R);
 
     % Discard any NaNs
-    if isnan(r_list(i,:)) ~= zeros(1,4)
-        r_list = r_list(i-1,:);
+    if isnan(r_list(n,:)) ~= zeros(1,4)
+        r_list = r_list(n-1,:);
     end
 
     % Next iteration
     Q_n = Q_new;
+end
+toc
+
+% Find logs and remove any Inf's
+log_r_list = log(r_list);
+log_r_list = log_r_list(~any(isnan(log_r_list)|isinf(log_r_list),2),:);
+
+% Compute Lyapunov spectrum
+for i = 1:2*N
+    Lyapunov(i) = sum(log_r_list(:,i))./tf;
 end
 
 %% Function definitions
@@ -273,7 +284,7 @@ function J = myjacobian(func,x)
     % Set numerical derivative parameters
     N = length(x);
     F_at_x = feval(func,x);
-    epsilon = 1E-10;
+    epsilon = 1E-12;
 
     % Compute numerical derivative
     xperturb = x;
