@@ -237,27 +237,28 @@ F =@(W) vortex_velocity_v2(0,[W(1), W(2), W(3), W(4)],0,N,q,r,a,R,c,p,cap,theta,
 
 % Compute Jacobian at y_n
 r_list = []; % singular values
-Q = zeros(2*N); % Initialize Q_0
+Q_n = zeros(2*N); % Initialize Q_0
 
-apple = myjacobian(F, y(1,:));
+% Compute {r^n}'s
+for i = 1:skip_every:100
+    % Compute J_n
+    J = myjacobian(F, y(i,:));
 
-% Modified Gram-Schmidt QR
-% See this hoss
-% https://www.mathworks.com/matlabcentral/fileexchange/55881-gram-schmidt-orthogonalization
+    % Modified GS QR this guy (?)
+    %[Qnew, Rnew] = QR(Jn*Qn)
+    [Qnew, R] = Gram_Schmidt_QR(J);
 
-[Q, R] = Gram_Schmidt_QR(apple);
+    % Extract singular value = diags(R) (?)
+    r_list(i,:) = diag(R);
 
-% i = 1;
-% for i = 1:skip_every:2
-%     % Compute J_n
-%     J = myjacobian(F, y(i,:));
-% 
-%     % Modified-QR factorize this guy (?)
-%     %[Qnew, Rnew] = QR(Jn*Qn)
-% 
-%     % Next iteration
-%     i = 1 + skip_every;
-% end
+    % Discard any NaNs
+    if isnan(r_list(i,:)) ~= zeros(1,4)
+        r_list = r_list(i-1,:);
+    end
+
+    % Next iteration
+    Q_n = Q_new;
+end
 
 %% Function definitions
 % RHS of nonlinear isothermal coords ODE
