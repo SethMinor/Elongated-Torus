@@ -237,7 +237,7 @@ F =@(W) vortex_velocity_v2(0,[W(1), W(2), W(3), W(4)],0,N,q,r,a,R,c,p,cap,theta,
 
 % Compute Jacobian at y_n
 %r_list = []; % singular values
-Q_n = zeros(2*N); % Initialize Q_0
+Q_n = eye(2*N); % Initialize Q_0
 
 % Compute {r^n}'s
 tic
