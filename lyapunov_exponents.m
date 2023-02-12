@@ -251,10 +251,14 @@ for n = 2:skip_every:length(y)
 
     % Extract singular value = diags(R) (?)
     r_list(n,:) = diag(R);
+    
+    % Include time of measurement
+    t_list(n,:) = t(n);
 
     % Discard any NaNs
     if isnan(r_list(n,:)) ~= zeros(1,4)
         r_list = r_list(n-1,:);
+        t_list = t_list(n-1,:);
     end
 
     % Next iteration
@@ -264,55 +268,69 @@ toc
 
 % Find logs and remove any Inf's
 log_r_list = log(r_list);
+inf_list = isinf(log_r_list(:,1));
 log_r_list = log_r_list(~any(isnan(log_r_list)|isinf(log_r_list),2),:);
 
-% Compute Lyapunov spectrum
+% Remove corresponding elements from the time vector
+t_remover = find(inf_list);
+t_list = t_list(1+t_remover(end):end);
+
+% Compute Lyapunov spectrum (starting at point N)
+N_lyapunov = ceil(length(t_list)/2); % Index to back-track Lyapunov average
 for i = 1:2*N
-    Lyapunov(i) = sum(log_r_list(:,i))./tf;
+    temp = log_r_list(N_lyapunov:end,i)./t_list(N_lyapunov:end);
+    Lyapunov(i) = mean(temp(N_lyapunov:end));
+    % SHOULD THIS BE MULTIPLIED BY 1/DT (?)
 end
 
 % Plot the spectrum
 figure (5)
 sgtitle('Lyapunov Spectrum','Interpreter','latex','FontSize',fs+2)
+
 subplot(4,1,1)
-plot(log_r_list(:,1)./t((end-length(log_r_list)+1):end))
+plot(t_list, log_r_list(:,1)./t_list)
 hold on
 yline(Lyapunov(1),'--k')
 hold off
 grid on
-xlabel('$n$','Interpreter','latex','FontSize',fs)
-ylabel('$(\lambda_1)^n$','Interpreter','latex','FontSize',fs)
+xlabel('$t$','Interpreter','latex','FontSize',fs)
+ylabel('$\ln(r_{11})/t$','Interpreter','latex','FontSize',fs)
 title("$\lambda_1=$ "+Lyapunov(1),'Interpreter','latex','FontSize',fs)
+ylim([-0.8 0.2])
 
 subplot(4,1,2)
-plot(log_r_list(:,2)./t((end-length(log_r_list)+1):end))
+plot(t_list, log_r_list(:,2)./t_list)
 hold on
 yline(Lyapunov(2),'--k')
 hold off
 grid on
-xlabel('$n$','Interpreter','latex','FontSize',fs)
-ylabel('$(\lambda_2)^n$','Interpreter','latex','FontSize',fs)
+xlabel('$t$','Interpreter','latex','FontSize',fs)
+ylabel('$\ln(r_{22})/t$','Interpreter','latex','FontSize',fs)
 title("$\lambda_2=$ "+Lyapunov(2),'Interpreter','latex','FontSize',fs)
+ylim([-0.8 0.2])
 
 subplot(4,1,3)
-plot(log_r_list(:,3)./t((end-length(log_r_list)+1):end))
+plot(t_list, log_r_list(:,3)./t_list)
 hold on
 yline(Lyapunov(3),'--k')
 hold off
 grid on
-xlabel('$n$','Interpreter','latex','FontSize',fs)
-ylabel('$(\lambda_3)^n$','Interpreter','latex','FontSize',fs)
+xlabel('$t$','Interpreter','latex','FontSize',fs)
+ylabel('$\ln(r_{33})/t$','Interpreter','latex','FontSize',fs)
 title("$\lambda_3=$ "+Lyapunov(3),'Interpreter','latex','FontSize',fs)
+ylim([-0.8 0.2])
 
 subplot(4,1,4)
-plot(log_r_list(:,4)./t((end-length(log_r_list)+1):end))
+%plot(log_r_list(:,4)./t((end-length(log_r_list)+1):end))
+plot(t_list, log_r_list(:,4)./t_list)
 hold on
 yline(Lyapunov(4),'--k')
 hold off
 grid on
-xlabel('$n$','Interpreter','latex','FontSize',fs)
-ylabel('$(\lambda_4)^n$','Interpreter','latex','FontSize',fs)
+xlabel('$t$','Interpreter','latex','FontSize',fs)
+ylabel('$\ln(r_{44})/t$','Interpreter','latex','FontSize',fs)
 title("$\lambda_4=$ "+Lyapunov(4),'Interpreter','latex','FontSize',fs)
+ylim([-0.8 0.2])
 
 %% Function definitions
 % RHS of nonlinear isothermal coords ODE
