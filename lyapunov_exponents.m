@@ -273,10 +273,10 @@ t_list = exp(log_r_list(:,5));
 log_r_list = log_r_list(:,1:4);
 
 % Compute Lyapunov spectrum (starting at point N)
-N_lyapunov = ceil(length(t_list)/2); % Index to back-average Lyapunov
+N_lyapunov = ceil(length(t_list)/3); % Index to back-average Lyapunov
 for i = 1:2*N
-    temp = log_r_list(N_lyapunov:end,i)./t_list(N_lyapunov:end);
-    Lyapunov(i) = mean(temp(N_lyapunov:end));
+    temp = log_r_list(end-N_lyapunov:end,i)./t_list(end-N_lyapunov:end);
+    Lyapunov(i) = mean(temp(end-N_lyapunov:end));
     % SHOULD THIS BE MULTIPLIED BY 1/DT (?)
 end
 
@@ -293,7 +293,7 @@ grid on
 xlabel('$t$','Interpreter','latex','FontSize',fs)
 ylabel('$\ln(r_{11})/t$','Interpreter','latex','FontSize',fs)
 title("$\lambda_1=$ "+Lyapunov(1),'Interpreter','latex','FontSize',fs)
-ylim([-0.8 0.2])
+ylim([-0.4 0.2])
 
 subplot(4,1,2)
 plot(t_list, log_r_list(:,2)./t_list)
@@ -304,7 +304,7 @@ grid on
 xlabel('$t$','Interpreter','latex','FontSize',fs)
 ylabel('$\ln(r_{22})/t$','Interpreter','latex','FontSize',fs)
 title("$\lambda_2=$ "+Lyapunov(2),'Interpreter','latex','FontSize',fs)
-ylim([-0.8 0.2])
+ylim([-0.4 0.2])
 
 subplot(4,1,3)
 plot(t_list, log_r_list(:,3)./t_list)
@@ -315,7 +315,7 @@ grid on
 xlabel('$t$','Interpreter','latex','FontSize',fs)
 ylabel('$\ln(r_{33})/t$','Interpreter','latex','FontSize',fs)
 title("$\lambda_3=$ "+Lyapunov(3),'Interpreter','latex','FontSize',fs)
-ylim([-0.8 0.2])
+ylim([-0.4 0.2])
 
 subplot(4,1,4)
 %plot(log_r_list(:,4)./t((end-length(log_r_list)+1):end))
@@ -327,7 +327,7 @@ grid on
 xlabel('$t$','Interpreter','latex','FontSize',fs)
 ylabel('$\ln(r_{44})/t$','Interpreter','latex','FontSize',fs)
 title("$\lambda_4=$ "+Lyapunov(4),'Interpreter','latex','FontSize',fs)
-ylim([-0.8 0.2])
+ylim([-0.4 0.2])
 
 %% Function definitions
 % RHS of nonlinear isothermal coords ODE
