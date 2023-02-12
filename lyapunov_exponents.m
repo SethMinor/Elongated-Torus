@@ -118,7 +118,7 @@ v2_0 = imag(w2_0);
 %% Integrate the equations of motion
 % Set total time and tolerances
 t0 = 0;
-tf = 500;
+tf = 1500;
 timespan = [t0, tf];
 options = odeset('RelTol', 1e-13, 'AbsTol', 1e-13);
 
@@ -250,15 +250,12 @@ for n = 2:skip_every:length(y)
     [Q_new, R] = Gram_Schmidt_QR(J);
 
     % Extract singular value = diags(R) (?)
-    r_list(n,:) = diag(R);
-    
     % Include time of measurement
-    t_list(n,:) = t(n);
+    r_list(n,:) = [diag(R); t(n)];
 
     % Discard any NaNs
-    if isnan(r_list(n,:)) ~= zeros(1,4)
+    if isnan(r_list(n,:)) ~= zeros(1,5)
         r_list = r_list(n-1,:);
-        t_list = t_list(n-1,:);
     end
 
     % Next iteration
@@ -271,12 +268,12 @@ log_r_list = log(r_list);
 inf_list = isinf(log_r_list(:,1));
 log_r_list = log_r_list(~any(isnan(log_r_list)|isinf(log_r_list),2),:);
 
-% Remove corresponding elements from the time vector
-t_remover = find(inf_list);
-t_list = t_list(1+t_remover(end):end);
+% Separate {r_ii} and {t_n}
+t_list = exp(log_r_list(:,5));
+log_r_list = log_r_list(:,1:4);
 
 % Compute Lyapunov spectrum (starting at point N)
-N_lyapunov = ceil(length(t_list)/2); % Index to back-track Lyapunov average
+N_lyapunov = ceil(length(t_list)/2); % Index to back-average Lyapunov
 for i = 1:2*N
     temp = log_r_list(N_lyapunov:end,i)./t_list(N_lyapunov:end);
     Lyapunov(i) = mean(temp(N_lyapunov:end));
