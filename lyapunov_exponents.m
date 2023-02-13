@@ -249,10 +249,10 @@ Q_list(:,:,1) = Q_n;
 for n = 2:length(y)-1
     dt = t(n) - t(n-1);
 
-    k1 = RHS_Q(Q_n,F,y,n);
-    k2 = RHS_Q(Q_n + dt*k1/2,F,y,n);
-    k3 = RHS_Q(Q_n + dt*k2/2,F,y,n);
-    k4 = RHS_Q(Q_n + dt*k3,F,y,n+1);
+    k1 = RHS_Q(Q_n,F,y,n-1,0);
+    k2 = RHS_Q(Q_n + dt*k1/2,F,y,n-1,1);
+    k3 = RHS_Q(Q_n + dt*k2/2,F,y,n-1,1);
+    k4 = RHS_Q(Q_n + dt*k3,F,y,n,0);
     
     % Solve
     Q_new = Q_n + dt*(k1 + 2*k2 + 2*k3 + k4)/6;
@@ -278,10 +278,10 @@ for n = 2:length(y)-1
     Q_nplus = Q_list(:,:,n);
 
     % Ghetto RK-4 (?)
-    k1 = RHS_rho(Q_n,F,y,n-1);
-    k4 = RHS_rho(Q_nplus,F,y,n);
-    k2 = (k1 + k4)/2;
+    k1 = RHS_rho(Q_n,F,y,n-1,0);
+    k2 = RHS_rho((Q_n + Q_nplus)/2,F,y,n-1,1);
     k3 = k2;
+    k4 = RHS_rho(Q_nplus,F,y,n,0);
     
     % Solve
     rho_new = rho_n + dt*(k1 + 2*k2 + 2*k3 + k4)/6;
@@ -389,25 +389,43 @@ function [Q, R] = Gram_Schmidt_QR(X)
 end
 
 % dQ/dt = QS ODE for Lyapunov Spectrum
-function dQdt = RHS_Q(Q,F,y,n)
+function dQdt = RHS_Q(Q,F,y,n,midpoint_bool)
   % Jacobian at y_n
   J_n = myjacobian(F, y(n,:)); % Initialize Jacobian matrix
 
-  % Define S matrix
-  temp = (Q)'*J_n*Q;
+  % Jacobian at y_{n+1}
+  J_nplus = myjacobian(F, y(n+1,:));
+
+  % Decide on a Jacobian averaging
+  if midpoint_bool == 0
+    temp = (Q')*J_n*Q;
+  elseif midpoint_bool == 1
+    Jtemp = (J_n + J_nplus)/2;
+    temp = (Q')*Jtemp*Q;
+  end
+
+  % Define the S matrix
   S = triu(-temp') + tril(temp);
 
   % Return RHS 
   dQdt = Q*S;
 end
 
-% d(rho_ii)/dt = (Q'JQ)_ii ODE for Lyapunov Spectrum
-function dpdt = RHS_rho(Q,F,y,n)
+% ODE for Lyapunov Spectrum, d(rho_ii)/dt = (Q'JQ)_ii
+function dpdt = RHS_rho(Q,F,y,n,midpoint_bool)
   % Jacobian at y_n
   J_n = myjacobian(F, y(n,:)); % Initialize Jacobian matrix
 
-  % Define S matrix
-  temp = (Q)'*J_n*Q;
+  % Jacobian at y_{n+1}
+  J_nplus = myjacobian(F, y(n+1,:));
+
+  % Decide on a Jacobian averaging
+  if midpoint_bool == 0
+    temp = (Q')*J_n*Q;
+  elseif midpoint_bool == 1
+    Jtemp = (J_n + J_nplus)/2;
+    temp = (Q')*Jtemp*Q;
+  end
 
   % Return RHS 
   dpdt = diag(temp)';
