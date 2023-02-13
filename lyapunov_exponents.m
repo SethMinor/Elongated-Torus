@@ -6,9 +6,6 @@ fs = 10;
 %'Interpreter','latex','FontSize', fs
 
 % Parameters
-% SEEMS LIKE THIS CODE MATCHES OG CODE BETTER FOR LARGER ALPHA
-% BATTLE BETWEEN ISOTHERMAL AND THIS (?)
-% Symplectic integrator as a possible fix (?)
 a = 11;
 R = 11;
 r = 3;
@@ -118,7 +115,7 @@ v2_0 = imag(w2_0);
 %% Integrate the equations of motion
 % Set total time and tolerances
 t0 = 0;
-tf = 1500;
+tf = 100;
 timespan = [t0, tf];
 options = odeset('RelTol', 1e-13, 'AbsTol', 1e-13);
 
@@ -235,99 +232,113 @@ skip_every = 1;
 % Define the RHS
 F =@(W) vortex_velocity_v2(0,[W(1), W(2), W(3), W(4)],0,N,q,r,a,R,c,p,cap,theta,Dginv,gr);
 
-% Compute Jacobian at y_n
-%r_list = []; % singular values
+% Compute variables for dQ/dt = QS
 Q_n = eye(2*N); % Initialize Q_0
+J_0 = myjacobian(F, y(1,:)); % Initialize Jacobian matrix
 
-% Compute {r^n}'s
-tic
-for n = 2:skip_every:length(y)
-    % Compute J_n
-    J = myjacobian(F, y(n,:));
+% Define S matrix
+% triu + tril commands
+temp = (Q_n)'*J_0*Q_n;
+S_0 = triu(-temp') + tril(temp);
 
-    % Modified GS QR this guy (?)
-    %[Qnew, Rnew] = QR(Jn*Qn)
-    [Q_new, R] = Gram_Schmidt_QR(J);
+% Solve dQ/dt = QS
+Q_list = zeros(4,4,length(y));
+Q_list(:,:,1) = Q_n;
 
-    % Extract singular value = diags(R) (?)
-    % Include time of measurement
-    r_list(n,:) = [diag(R); t(n)];
+% RK-4 by hand
+for n = 2:length(y)
+    dt = t(n) - t(n-1);
 
-    % Discard any NaNs
-    if isnan(r_list(n,:)) ~= zeros(1,5)
-        r_list = r_list(n-1,:);
-    end
-
-    % Next iteration
+    k1 = RHS_Q(Q_n,F,y,n);
+    k2 = RHS_Q(Q_n + dt*k1/2,F,y,n);
+    k3 = RHS_Q(Q_n + dt*k2/2,F,y,n);
+    k4 = RHS_Q(Q_n + dt*k3,F,y,n);
+    
+    % Solve
+    Q_new = Q_n + dt*(k1 + 2*k2 + 2*k3 + k4)/6;
     Q_n = Q_new;
-end
-toc
-
-% Find logs and remove any Inf's
-log_r_list = log(r_list);
-inf_list = isinf(log_r_list(:,1));
-log_r_list = log_r_list(~any(isnan(log_r_list)|isinf(log_r_list),2),:);
-
-% Separate {r_ii} and {t_n}
-t_list = exp(log_r_list(:,5));
-log_r_list = log_r_list(:,1:4);
-
-% Compute Lyapunov spectrum (starting at point N)
-N_lyapunov = ceil(length(t_list)/3); % Index to back-average Lyapunov
-for i = 1:2*N
-    temp = log_r_list(end-N_lyapunov:end,i)./t_list(end-N_lyapunov:end);
-    Lyapunov(i) = mean(temp(end-N_lyapunov:end));
-    % SHOULD THIS BE MULTIPLIED BY 1/DT (?)
+    
+    % Store Q_n solution
+    Q_list(:,:,n) = Q_n;
 end
 
-% Plot the spectrum
-figure (5)
-sgtitle('Lyapunov Spectrum','Interpreter','latex','FontSize',fs+2)
+% Solve {rho_ii} ODE
+rho_n = ones(1,4); % Initial condition
+rho_list = zeros(length(y),4);
+rho_list(1,:) = rho_n;
 
-subplot(4,1,1)
-plot(t_list, log_r_list(:,1)./t_list)
-hold on
-yline(Lyapunov(1),'--k')
-hold off
-grid on
-xlabel('$t$','Interpreter','latex','FontSize',fs)
-ylabel('$\ln(r_{11})/t$','Interpreter','latex','FontSize',fs)
-title("$\lambda_1=$ "+Lyapunov(1),'Interpreter','latex','FontSize',fs)
-ylim([-0.4 0.2])
+% RK-4 by hand (here we go again)
+% HOW TO US RK-4 FOR THIS (?)
+% d(rho_ii)/dt = (Q'JQ)_ii
+for n = 2:length(y)
+    dt = t(n) - t(n-1);
+    
+    % Find Q_n and Q_{n+1}
+    Q_n = Q_list(:,:,n-1);
+    Q_nplus = Q_list(:,:,n);
 
-subplot(4,1,2)
-plot(t_list, log_r_list(:,2)./t_list)
-hold on
-yline(Lyapunov(2),'--k')
-hold off
-grid on
-xlabel('$t$','Interpreter','latex','FontSize',fs)
-ylabel('$\ln(r_{22})/t$','Interpreter','latex','FontSize',fs)
-title("$\lambda_2=$ "+Lyapunov(2),'Interpreter','latex','FontSize',fs)
-ylim([-0.4 0.2])
+    % Ghetto RK-4 (?)
+    k1 = RHS_rho(Q_n,F,y,n);
+    k4 = RHS_rho(Q_nplus,F,y,n);
+    k2 = (k1 + k4)/2;
+    k3 = k2;
+    
+    % Solve
+    rho_new = rho_n + dt*(k1 + 2*k2 + 2*k3 + k4)/6;
+    rho_n = rho_new;
+    
+    % Store Q_n solution
+    rho_list(n,:) = rho_n;
+end
 
-subplot(4,1,3)
-plot(t_list, log_r_list(:,3)./t_list)
-hold on
-yline(Lyapunov(3),'--k')
-hold off
-grid on
-xlabel('$t$','Interpreter','latex','FontSize',fs)
-ylabel('$\ln(r_{33})/t$','Interpreter','latex','FontSize',fs)
-title("$\lambda_3=$ "+Lyapunov(3),'Interpreter','latex','FontSize',fs)
-ylim([-0.4 0.2])
-
-subplot(4,1,4)
-%plot(log_r_list(:,4)./t((end-length(log_r_list)+1):end))
-plot(t_list, log_r_list(:,4)./t_list)
-hold on
-yline(Lyapunov(4),'--k')
-hold off
-grid on
-xlabel('$t$','Interpreter','latex','FontSize',fs)
-ylabel('$\ln(r_{44})/t$','Interpreter','latex','FontSize',fs)
-title("$\lambda_4=$ "+Lyapunov(4),'Interpreter','latex','FontSize',fs)
-ylim([-0.4 0.2])
+% %% Plot the spectrum
+% figure (5)
+% sgtitle('Lyapunov Spectrum','Interpreter','latex','FontSize',fs+2)
+% 
+% subplot(4,1,1)
+% plot(t_list, log_r_list(:,1)./t_list)
+% hold on
+% yline(Lyapunov(1),'--k')
+% hold off
+% grid on
+% xlabel('$t$','Interpreter','latex','FontSize',fs)
+% ylabel('$\ln(r_{11})/t$','Interpreter','latex','FontSize',fs)
+% title("$\lambda_1=$ "+Lyapunov(1),'Interpreter','latex','FontSize',fs)
+% ylim([-0.4 0.2])
+% 
+% subplot(4,1,2)
+% plot(t_list, log_r_list(:,2)./t_list)
+% hold on
+% yline(Lyapunov(2),'--k')
+% hold off
+% grid on
+% xlabel('$t$','Interpreter','latex','FontSize',fs)
+% ylabel('$\ln(r_{22})/t$','Interpreter','latex','FontSize',fs)
+% title("$\lambda_2=$ "+Lyapunov(2),'Interpreter','latex','FontSize',fs)
+% ylim([-0.4 0.2])
+% 
+% subplot(4,1,3)
+% plot(t_list, log_r_list(:,3)./t_list)
+% hold on
+% yline(Lyapunov(3),'--k')
+% hold off
+% grid on
+% xlabel('$t$','Interpreter','latex','FontSize',fs)
+% ylabel('$\ln(r_{33})/t$','Interpreter','latex','FontSize',fs)
+% title("$\lambda_3=$ "+Lyapunov(3),'Interpreter','latex','FontSize',fs)
+% ylim([-0.4 0.2])
+% 
+% subplot(4,1,4)
+% %plot(log_r_list(:,4)./t((end-length(log_r_list)+1):end))
+% plot(t_list, log_r_list(:,4)./t_list)
+% hold on
+% yline(Lyapunov(4),'--k')
+% hold off
+% grid on
+% xlabel('$t$','Interpreter','latex','FontSize',fs)
+% ylabel('$\ln(r_{44})/t$','Interpreter','latex','FontSize',fs)
+% title("$\lambda_4=$ "+Lyapunov(4),'Interpreter','latex','FontSize',fs)
+% ylim([-0.4 0.2])
 
 %% Function definitions
 % RHS of nonlinear isothermal coords ODE
@@ -375,4 +386,29 @@ function [Q, R] = Gram_Schmidt_QR(X)
         Q(:,i) = v/R(i,i);
     end
     R(:,m+1:n) = Q'*X(:,m+1:n);
+end
+
+% dQ/dt = QS ODE for Lyapunov Spectrum
+function dQdt = RHS_Q(Q,F,y,n)
+  % Jacobian at y_n
+  J_n = myjacobian(F, y(n,:)); % Initialize Jacobian matrix
+
+  % Define S matrix
+  temp = (Q)'*J_n*Q;
+  S = triu(-temp') + tril(temp);
+
+  % Return RHS 
+  dQdt = Q*S;
+end
+
+% d(rho_ii)/dt = (Q'JQ)_ii ODE for Lyapunov Spectrum
+function dpdt = RHS_rho(Q,F,y,n)
+  % Jacobian at y_n
+  J_n = myjacobian(F, y(n,:)); % Initialize Jacobian matrix
+
+  % Define S matrix
+  temp = (Q)'*J_n*Q;
+
+  % Return RHS 
+  dpdt = diag(temp)';
 end
