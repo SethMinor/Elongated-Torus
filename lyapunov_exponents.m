@@ -246,13 +246,13 @@ Q_list = zeros(4,4,length(y));
 Q_list(:,:,1) = Q_n;
 
 % RK-4 by hand
-for n = 2:length(y)
+for n = 2:length(y)-1
     dt = t(n) - t(n-1);
 
     k1 = RHS_Q(Q_n,F,y,n);
     k2 = RHS_Q(Q_n + dt*k1/2,F,y,n);
     k3 = RHS_Q(Q_n + dt*k2/2,F,y,n);
-    k4 = RHS_Q(Q_n + dt*k3,F,y,n);
+    k4 = RHS_Q(Q_n + dt*k3,F,y,n+1);
     
     % Solve
     Q_new = Q_n + dt*(k1 + 2*k2 + 2*k3 + k4)/6;
@@ -270,7 +270,7 @@ rho_list(1,:) = rho_n;
 % RK-4 by hand (here we go again)
 % HOW TO US RK-4 FOR THIS (?)
 % d(rho_ii)/dt = (Q'JQ)_ii
-for n = 2:length(y)
+for n = 2:length(y)-1
     dt = t(n) - t(n-1);
     
     % Find Q_n and Q_{n+1}
@@ -278,7 +278,7 @@ for n = 2:length(y)
     Q_nplus = Q_list(:,:,n);
 
     % Ghetto RK-4 (?)
-    k1 = RHS_rho(Q_n,F,y,n);
+    k1 = RHS_rho(Q_n,F,y,n-1);
     k4 = RHS_rho(Q_nplus,F,y,n);
     k2 = (k1 + k4)/2;
     k3 = k2;
