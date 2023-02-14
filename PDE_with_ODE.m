@@ -63,8 +63,9 @@ Df = fit(theta_raw, D1, 'cubicinterp');
 
 subplot(2,1,2)
 gamma =@(phi,theta) sqrt((a+r*cos(theta)).^2.*sin(phi).^2 + (R+r*cos(theta)).^2.*cos(phi).^2);
-plot(theta_raw, imag(-1i*r./gamma(phi_raw,theta_raw)) -  Df(theta_raw),'.-')
+plot(theta_raw, abs(imag(-1i*r./gamma(phi_raw,theta_raw)) -  Df(theta_raw)),'.-')
 grid on
+set(gca, 'YScale', 'log')
 
 title("Residual, max $=$ "+max(abs(imag(-1i*r./gamma(phi_raw,theta_raw)) -  Df(theta_raw))),'Interpreter','latex','FontSize', fs+2)
 xlabel('$\theta$, poloidal coordinate','Interpreter','latex','FontSize', fs)
