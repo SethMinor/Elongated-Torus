@@ -226,6 +226,7 @@ ylabel('Energy contributions','Interpreter','latex')
 legend('Total, $H$','Classic','Curvature','Quantum','Interpreter','latex')
 
 %% Compute Lyapunov exponents
+% Treppen integration (?)
 % Roll through 'y_n' solution and store {r^n} values
 skip_every = 1;
 
