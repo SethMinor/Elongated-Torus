@@ -117,7 +117,7 @@ v2_0 = imag(w2_0);
 t0 = 0;
 tf = 100;
 timespan = [t0, tf];
-options = odeset('RelTol', 1e-13, 'AbsTol', 1e-13);
+options = odeset('RelTol', 1e-11, 'AbsTol', 1e-11);
 
 % Numerical integration using ode45
 y0 = [u1_0, u2_0, v1_0, v2_0];
@@ -269,8 +269,6 @@ rho_list = zeros(length(y)-1,4);
 rho_list(1,:) = rho_n;
 
 % RK-4 by hand (here we go again)
-% HOW TO US RK-4 FOR THIS (?)
-% d(rho_ii)/dt = (Q'JQ)_ii
 for n = 2:length(y)-1
     dt = t(n) - t(n-1);
     
@@ -292,54 +290,65 @@ for n = 2:length(y)-1
     rho_list(n,:) = rho_n;
 end
 
-% %% Plot the spectrum
-% figure (5)
-% sgtitle('Lyapunov Spectrum','Interpreter','latex','FontSize',fs+2)
-% 
-% subplot(4,1,1)
-% plot(t_list, log_r_list(:,1)./t_list)
-% hold on
-% yline(Lyapunov(1),'--k')
-% hold off
-% grid on
-% xlabel('$t$','Interpreter','latex','FontSize',fs)
-% ylabel('$\ln(r_{11})/t$','Interpreter','latex','FontSize',fs)
-% title("$\lambda_1=$ "+Lyapunov(1),'Interpreter','latex','FontSize',fs)
-% ylim([-0.4 0.2])
-% 
-% subplot(4,1,2)
-% plot(t_list, log_r_list(:,2)./t_list)
-% hold on
-% yline(Lyapunov(2),'--k')
-% hold off
-% grid on
-% xlabel('$t$','Interpreter','latex','FontSize',fs)
-% ylabel('$\ln(r_{22})/t$','Interpreter','latex','FontSize',fs)
-% title("$\lambda_2=$ "+Lyapunov(2),'Interpreter','latex','FontSize',fs)
-% ylim([-0.4 0.2])
-% 
-% subplot(4,1,3)
-% plot(t_list, log_r_list(:,3)./t_list)
-% hold on
-% yline(Lyapunov(3),'--k')
-% hold off
-% grid on
-% xlabel('$t$','Interpreter','latex','FontSize',fs)
-% ylabel('$\ln(r_{33})/t$','Interpreter','latex','FontSize',fs)
-% title("$\lambda_3=$ "+Lyapunov(3),'Interpreter','latex','FontSize',fs)
-% ylim([-0.4 0.2])
-% 
-% subplot(4,1,4)
-% %plot(log_r_list(:,4)./t((end-length(log_r_list)+1):end))
-% plot(t_list, log_r_list(:,4)./t_list)
-% hold on
-% yline(Lyapunov(4),'--k')
-% hold off
-% grid on
-% xlabel('$t$','Interpreter','latex','FontSize',fs)
-% ylabel('$\ln(r_{44})/t$','Interpreter','latex','FontSize',fs)
-% title("$\lambda_4=$ "+Lyapunov(4),'Interpreter','latex','FontSize',fs)
-% ylim([-0.4 0.2])
+% Compute the full spectrum
+N_lyapunov = 100; % number to back-average
+Lyapunov = zeros(1,4);
+tnew = t(2:end); % To make things easier
+for i = 1:4
+    Lyapunov(i) = mean(rho_list(end-N_lyapunov:end,i)./tnew(end-N_lyapunov:end));
+end
+
+%% Plot the spectrum
+figure (5)
+sgtitle('Lyapunov Spectrum (Lorenz)','Interpreter','latex','FontSize',fs+2)
+
+subplot(4,1,1)
+plot(tnew, rho_list(:,1)./tnew)
+hold on
+yline(Lyapunov(1),'--r')
+hold off
+grid on
+xlabel('$t$','Interpreter','latex','FontSize',fs)
+ylabel('$\rho_{1}/t$','Interpreter','latex','FontSize',fs)
+title("$\lambda_1=$ "+Lyapunov(1),'Interpreter','latex','FontSize',fs)
+legend('Numerical','Averaged','Interpreter','latex')
+ylim([Lyapunov(1)-0.5, Lyapunov(1)+0.5])
+
+subplot(4,1,2)
+plot(tnew, rho_list(:,2)./tnew)
+hold on
+yline(Lyapunov(2),'--r')
+hold off
+grid on
+xlabel('$t$','Interpreter','latex','FontSize',fs)
+ylabel('$\rho_{2}/t$','Interpreter','latex','FontSize',fs)
+title("$\lambda_2=$ "+Lyapunov(2),'Interpreter','latex','FontSize',fs)
+legend('Numerical','Averaged','Interpreter','latex')
+ylim([Lyapunov(2)-0.5, Lyapunov(2)+0.5])
+
+subplot(4,1,3)
+plot(tnew, rho_list(:,3)./tnew)
+hold on
+yline(Lyapunov(3),'--r')
+hold off
+grid on
+xlabel('$t$','Interpreter','latex','FontSize',fs)
+ylabel('$\rho_{3}/t$','Interpreter','latex','FontSize',fs)
+title("$\lambda_3=$ "+Lyapunov(3),'Interpreter','latex','FontSize',fs)
+legend('Numerical','Averaged','Interpreter','latex')
+ylim([Lyapunov(3)-0.5, Lyapunov(3)+0.5])
+
+subplot(4,1,4)
+plot(tnew, rho_list(:,4)./tnew)
+hold on
+yline(Lyapunov(4),'--r')
+hold off
+grid on
+xlabel('$t$','Interpreter','latex','FontSize',fs)
+ylabel('$\rho_{4}/t$','Interpreter','latex','FontSize',fs)
+title("$\lambda_4=$ "+Lyapunov(4),'Interpreter','latex','FontSize',fs)
+legend('Numerical','Averaged','Interpreter','latex')
+ylim([Lyapunov(4)-0.5, Lyapunov(4)+0.5])
 
 %% Function definitions
 % RHS of nonlinear isothermal coords ODE
