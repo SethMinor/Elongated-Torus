@@ -243,7 +243,7 @@ temp = (Q_n)'*J_0*Q_n;
 S_0 = triu(-temp') + tril(temp);
 
 % Solve dQ/dt = QS
-Q_list = zeros(4,4,length(y));
+Q_list = zeros(4,4,length(y)-1);
 Q_list(:,:,1) = Q_n;
 
 % RK-4 by hand
@@ -265,7 +265,7 @@ end
 
 % Solve {rho_ii} ODE
 rho_n = ones(1,4); % Initial condition
-rho_list = zeros(length(y),4);
+rho_list = zeros(length(y)-1,4);
 rho_list(1,:) = rho_n;
 
 % RK-4 by hand (here we go again)
