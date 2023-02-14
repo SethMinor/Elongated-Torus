@@ -47,7 +47,7 @@ temp = (Q_n)'*J_0*Q_n;
 S_0 = triu(-temp') + tril(temp);
 
 % Solve dQ/dt = QS
-Q_list = zeros(3,3,length(y));
+Q_list = zeros(3,3,length(y)-1);
 Q_list(:,:,1) = Q_n;
 
 % RK-4 by hand
