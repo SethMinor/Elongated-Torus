@@ -241,7 +241,7 @@ J_0 = myjacobian(F, y(1,:)); % Initialize Jacobian matrix
 % Define S matrix
 % triu + tril commands
 temp = (Q_n)'*J_0*Q_n;
-S_0 = triu(-temp') + tril(temp);
+S_0 = triu(-temp') + tril(temp); % TAKE AS ZERO (?)
 
 % Solve dQ/dt = QS
 Q_list = zeros(4,4,length(y)-1);
