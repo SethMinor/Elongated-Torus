@@ -301,7 +301,7 @@ end
 
 %% Plot the spectrum
 figure (5)
-sgtitle('Lyapunov Spectrum (Lorenz)','Interpreter','latex','FontSize',fs+2)
+sgtitle('Lyapunov Spectrum','Interpreter','latex','FontSize',fs+2)
 
 subplot(4,1,1)
 plot(tnew, rho_list(:,1)./tnew)
