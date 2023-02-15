@@ -245,6 +245,7 @@ J_0 = myjacobian(F, y(1,:)); % Initialize Jacobian matrix
 %S_0 = triu(-temp') + tril(temp); % TAKE AS ZERO (?)
 
 % IS THE PROBLEM THE STEP SIZE/SCHEME OF THE JACOBIAN (?)
+% HIGHER ORDER DERIVATIVE APPROX MIGHT BE BETTER (?)
 
 % Solve dQ/dt = QS
 Q_list = zeros(4,4,length(y)-1);
