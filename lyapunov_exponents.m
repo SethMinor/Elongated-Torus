@@ -246,6 +246,7 @@ J_0 = myjacobian(F, y(1,:)); % Initialize Jacobian matrix
 
 % IS THE PROBLEM THE STEP SIZE/SCHEME OF THE JACOBIAN (?)
 % HIGHER ORDER DERIVATIVE APPROX MIGHT BE BETTER (?)
+% https://www.dam.brown.edu/people/alcyew/handouts/numdiff.pdf
 
 % Solve dQ/dt = QS
 Q_list = zeros(4,4,length(y)-1);
