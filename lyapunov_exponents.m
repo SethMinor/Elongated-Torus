@@ -6,7 +6,7 @@ fs = 10;
 %'Interpreter','latex','FontSize', fs
 
 % Parameters
-a = 11;
+a = 13;
 R = 11;
 r = 3;
 c = sqrt(R^2 - r^2);
@@ -97,8 +97,8 @@ p = exp(-gr); % nome (for periodicity)
 % Initial vortex positions in [-pi*c,pi*c]x[cgl,cgr]
 % [-pi*c,pi*c] = [-33.2475, 33.2475]
 % [cgl,cgr] = [-10.5830, 10.5830]
-w1_0 = (0) + 1i*(8); % positive vortex
-w2_0 = (0) + 1i*(-6); % negative vortex
+w1_0 = (-30) + 1i*(-10); % positive vortex
+w2_0 = (-30) + 1i*(-9.8); % negative vortex
 
 % Vortex charges
 q1 = 1;
@@ -116,9 +116,9 @@ v2_0 = imag(w2_0);
 %% Integrate the equations of motion
 % Set total time and tolerances
 t0 = 0;
-tf = 100;
+tf = 10;
 timespan = [t0, tf];
-options = odeset('RelTol', 1e-11, 'AbsTol', 1e-11);
+options = odeset('RelTol', 1e-10, 'AbsTol', 1e-10);
 
 % Numerical integration using ode45
 y0 = [u1_0, u2_0, v1_0, v2_0];
@@ -154,29 +154,29 @@ Z = r*sin(Theta);
 bluey = [0 0.4470 0.7410];
 orangu = [0.8500 0.3250 0.0980];
 
-figure (2)
-
-% Isothermal orbit
-subplot(2,1,1)
-plot(U,V,'.')
-grid on
-xlabel('$u = $Re$(w)$','Interpreter','latex','FontSize',fs)
-ylabel('$v = $Im$(w)$','Interpreter','latex','FontSize',fs)
-title('Isothermal Coordinates','Interpreter','latex','FontSize',fs)
-xlim([-pi*c, pi*c])
-ylim([c*gl, c*gr])
-
-% Toriodal-poloidal orbit
-subplot(2,1,2)
-plotwrapped(Phi(:,1),Theta(:,1),1, [-pi, pi],[-pi, pi], 0.05, bluey)
-hold on
-plotwrapped(Phi(:,2),Theta(:,2),1, [-pi, pi],[-pi, pi], 0.05, orangu)
-hold off
-xlabel('$\phi$','Interpreter','latex','FontSize',fs)
-ylabel('$\theta$','Interpreter','latex','FontSize',fs)
-title('Toroidal-Poloidal Coordinates','Interpreter','latex','FontSize',fs)
-xlim([-pi, pi])
-ylim([-pi, pi])
+% figure (2)
+% 
+% % Isothermal orbit
+% subplot(2,1,1)
+% plot(U,V,'.')
+% grid on
+% xlabel('$u = $Re$(w)$','Interpreter','latex','FontSize',fs)
+% ylabel('$v = $Im$(w)$','Interpreter','latex','FontSize',fs)
+% title('Isothermal Coordinates','Interpreter','latex','FontSize',fs)
+% xlim([-pi*c, pi*c])
+% ylim([c*gl, c*gr])
+% 
+% % Toriodal-poloidal orbit
+% subplot(2,1,2)
+% plotwrapped(Phi(:,1),Theta(:,1),1, [-pi, pi],[-pi, pi], 0.05, bluey)
+% hold on
+% plotwrapped(Phi(:,2),Theta(:,2),1, [-pi, pi],[-pi, pi], 0.05, orangu)
+% hold off
+% xlabel('$\phi$','Interpreter','latex','FontSize',fs)
+% ylabel('$\theta$','Interpreter','latex','FontSize',fs)
+% title('Toroidal-Poloidal Coordinates','Interpreter','latex','FontSize',fs)
+% xlim([-pi, pi])
+% ylim([-pi, pi])
 
 % 3D Cartesian surface plot of orbits
 utorus = linspace(0,2*pi);
@@ -239,14 +239,10 @@ Q_n = eye(2*N); % Initialize Q_0
 J_0 = myjacobian(F, y(1,:)); % Initialize Jacobian matrix
 
 % Define S matrix
-% EDIT: THIS DOESN'T MATTER (?)
 % triu + tril commands
 %temp = (Q_n)'*J_0*Q_n;
-%S_0 = triu(-temp') + tril(temp); % TAKE AS ZERO (?)
-
-% IS THE PROBLEM THE STEP SIZE/SCHEME OF THE JACOBIAN (?)
-% HIGHER ORDER DERIVATIVE APPROX MIGHT BE BETTER (?)
-% https://www.dam.brown.edu/people/alcyew/handouts/numdiff.pdf
+%S_0 = triu(-temp') + tril(temp);
+%S_0 = 0*S_0;
 
 % Solve dQ/dt = QS
 Q_list = zeros(4,4,length(y)-1);
@@ -398,27 +394,27 @@ function J = myjacobian(func,x)
     end
 end
 
-% Modified Gram-Schmidt QR, for Lyapunov exponents
-% https://www.mathworks.com/matlabcentral/fileexchange/55881-gram-schmidt-orthogonalization
-function [Q, R] = Gram_Schmidt_QR(X)
-    % Modified Gram-Schmidt orthonormalization (numerical stable version of Gram-Schmidt algorithm) 
-    % which produces the same result as [Q,R]=qr(X,0)
-    % Written by Mo Chen (sth4nth@gmail.com).
-    [d,n] = size(X);
-    m = min(d,n);
-    R = zeros(m,n);
-    Q = zeros(d,m);
-    for i = 1:m
-        v = X(:,i);
-        for j = 1:i-1
-            R(j,i) = Q(:,j)'*v;
-            v = v-R(j,i)*Q(:,j);
-        end
-        R(i,i) = norm(v);
-        Q(:,i) = v/R(i,i);
-    end
-    R(:,m+1:n) = Q'*X(:,m+1:n);
-end
+% % Modified Gram-Schmidt QR, for Lyapunov exponents
+% % https://www.mathworks.com/matlabcentral/fileexchange/55881-gram-schmidt-orthogonalization
+% function [Q, R] = Gram_Schmidt_QR(X)
+%     % Modified Gram-Schmidt orthonormalization (numerical stable version of Gram-Schmidt algorithm) 
+%     % which produces the same result as [Q,R]=qr(X,0)
+%     % Written by Mo Chen (sth4nth@gmail.com).
+%     [d,n] = size(X);
+%     m = min(d,n);
+%     R = zeros(m,n);
+%     Q = zeros(d,m);
+%     for i = 1:m
+%         v = X(:,i);
+%         for j = 1:i-1
+%             R(j,i) = Q(:,j)'*v;
+%             v = v-R(j,i)*Q(:,j);
+%         end
+%         R(i,i) = norm(v);
+%         Q(:,i) = v/R(i,i);
+%     end
+%     R(:,m+1:n) = Q'*X(:,m+1:n);
+% end
 
 % dQ/dt = QS ODE for Lyapunov Spectrum
 function dQdt = RHS_Q(Q,F,y,n,midpoint_bool)
