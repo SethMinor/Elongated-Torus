@@ -6,7 +6,7 @@ fs = 10;
 %'Interpreter','latex','FontSize', fs
 
 % Parameters
-a = 13;
+a = 12;
 R = 11;
 r = 3;
 c = sqrt(R^2 - r^2);
@@ -98,7 +98,7 @@ p = exp(-gr); % nome (for periodicity)
 % [-pi*c,pi*c] = [-33.2475, 33.2475]
 % [cgl,cgr] = [-10.5830, 10.5830]
 w1_0 = (-30) + 1i*(-10); % positive vortex
-w2_0 = (-30) + 1i*(-9.8); % negative vortex
+w2_0 = (6) + 1i*(5); % negative vortex
 
 % Vortex charges
 q1 = 1;
@@ -116,9 +116,9 @@ v2_0 = imag(w2_0);
 %% Integrate the equations of motion
 % Set total time and tolerances
 t0 = 0;
-tf = 100;
+tf = 300;
 timespan = [t0, tf];
-options = odeset('RelTol', 1e-10, 'AbsTol', 1e-10);
+options = odeset('RelTol', 1e-11, 'AbsTol', 1e-11);
 
 % Numerical integration using ode45
 y0 = [u1_0, u2_0, v1_0, v2_0];
@@ -373,7 +373,7 @@ function J = myjacobian(func,x)
     % Set numerical derivative parameters
     N = length(x);
     %F_at_x = feval(func,x);
-    epsilon = 1E-8;
+    epsilon = 1E-5;
 
     % Compute numerical derivative
     xperturb = x;
