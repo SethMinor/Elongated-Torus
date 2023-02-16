@@ -18,7 +18,7 @@ b = 8/3;
 % Integrate the equations of motion
 % Set total time and tolerances
 t0 = 0;
-tf = 300;
+tf = 500;
 timespan = [t0, tf];
 options = odeset('RelTol', 1e-10, 'AbsTol', 1e-10);
 
@@ -44,7 +44,7 @@ J_0 = myjacobian(F, y(1,:)); % Initialize Jacobian matrix
 % Define S matrix
 % triu + tril commands
 temp = (Q_n)'*J_0*Q_n;
-S_0 = triu(-temp') + tril(temp); % TAKE AS ZERO (?)
+S_0 = triu(-temp') + tril(temp);
 
 % Solve dQ/dt = QS
 Q_list = zeros(3,3,length(y)-1);
@@ -165,17 +165,32 @@ end
 function J = myjacobian(func,x)
     % Set numerical derivative parameters
     N = length(x);
-    F_at_x = feval(func,x);
-    epsilon = 1E-12;
+    %F_at_x = feval(func,x);
+    epsilon = 1E-8;
 
     % Compute numerical derivative
     xperturb = x;
+    xperturb2 = x; 
+    xperturb_minus = x;
+    xperturb_minus2 = x;
     %xperturb = x + epsilon;
     J = zeros(N);
     for i = 1:N
         xperturb(i) = xperturb(i) + epsilon;
-        J(:,i) = (feval(func,xperturb) - F_at_x)/epsilon;
+        xperturb2(i) = xperturb2(i) + 2*epsilon;
+
+        xperturb_minus(i) = xperturb_minus(i) - epsilon;
+        xperturb_minus2(i) = xperturb_minus2(i) - 2*epsilon;
+
+        %J(:,i) = (feval(func,xperturb) - F_at_x)/epsilon;
+        %J(:,i) = (feval(func,xperturb) - feval(func,xperturb_minus))/(2*epsilon);
+        J(:,i) = (-feval(func,xperturb2) + 8*feval(func,xperturb) ...
+            - 8*feval(func,xperturb_minus) + feval(func,xperturb_minus2))/(12*epsilon);
+
         xperturb(i) = x(i);
+        xperturb2(i) = x(i);
+        xperturb_minus(i) = x(i);
+        xperturb_minus2(i) = x(i);
     end
 end
 
