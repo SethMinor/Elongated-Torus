@@ -97,7 +97,7 @@ p = exp(-gr); % nome (for periodicity)
 % Initial vortex positions in [-pi*c,pi*c]x[cgl,cgr]
 % [-pi*c,pi*c] = [-33.2475, 33.2475]
 % [cgl,cgr] = [-10.5830, 10.5830]
-w1_0 = (-30) + 1i*(-10); % positive vortex
+w1_0 = (-30) + 1i*(10); % positive vortex
 w2_0 = (-30) + 1i*(-9.8); % negative vortex
 
 % Vortex charges
@@ -116,7 +116,7 @@ v2_0 = imag(w2_0);
 %% Integrate the equations of motion
 % Set total time and tolerances
 t0 = 0;
-tf = 10;
+tf = 100;
 timespan = [t0, tf];
 options = odeset('RelTol', 1e-10, 'AbsTol', 1e-10);
 
@@ -236,13 +236,6 @@ F =@(W) vortex_velocity_v2(0,[W(1), W(2), W(3), W(4)],0,N,q,r,a,R,c,p,cap,theta,
 
 % Compute variables for dQ/dt = QS
 Q_n = eye(2*N); % Initialize Q_0
-J_0 = myjacobian(F, y(1,:)); % Initialize Jacobian matrix
-
-% Define S matrix
-% triu + tril commands
-%temp = (Q_n)'*J_0*Q_n;
-%S_0 = triu(-temp') + tril(temp);
-%S_0 = 0*S_0;
 
 % Solve dQ/dt = QS
 Q_list = zeros(4,4,length(y)-1);
