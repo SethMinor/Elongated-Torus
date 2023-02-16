@@ -97,7 +97,7 @@ p = exp(-gr); % nome (for periodicity)
 % Initial vortex positions in [-pi*c,pi*c]x[cgl,cgr]
 % [-pi*c,pi*c] = [-33.2475, 33.2475]
 % [cgl,cgr] = [-10.5830, 10.5830]
-w1_0 = (-30) + 1i*(10); % positive vortex
+w1_0 = (-30) + 1i*(-10); % positive vortex
 w2_0 = (-30) + 1i*(-9.8); % negative vortex
 
 % Vortex charges
@@ -116,9 +116,9 @@ v2_0 = imag(w2_0);
 %% Integrate the equations of motion
 % Set total time and tolerances
 t0 = 0;
-tf = 100;
+tf = 300;
 timespan = [t0, tf];
-options = odeset('RelTol', 1e-10, 'AbsTol', 1e-10);
+options = odeset('RelTol', 1e-11, 'AbsTol', 1e-11);
 
 % Numerical integration using ode45
 y0 = [u1_0, u2_0, v1_0, v2_0];
@@ -242,6 +242,8 @@ Q_list = zeros(4,4,length(y)-1);
 Q_list(:,:,1) = Q_n;
 
 % RK-4 by hand
+disp('Started Q_n loop')
+tic
 for n = 2:length(y)-1
     dt = t(n) - t(n-1);
 
@@ -256,7 +258,12 @@ for n = 2:length(y)-1
     
     % Store Q_n solution
     Q_list(:,:,n) = Q_n;
+
+    if mod(n,100) == 0
+        fprintf('Iteration %.f of %.f\n',n,size(y)-1)
+    end
 end
+toc
 
 % Solve {rho_ii} ODE
 rho_n = ones(1,4); % Initial condition
@@ -264,6 +271,8 @@ rho_list = zeros(length(y)-1,4);
 rho_list(1,:) = rho_n;
 
 % RK-4 by hand (here we go again)
+disp('Started rho_{ii} loop')
+tic
 for n = 2:length(y)-1
     dt = t(n) - t(n-1);
     
@@ -283,7 +292,12 @@ for n = 2:length(y)-1
     
     % Store Q_n solution
     rho_list(n,:) = rho_n;
+
+    if mod(n,100) == 0
+        fprintf('Iteration %.f of %.f\n',n,size(y)-1)
+    end
 end
+toc
 
 % Compute the full spectrum
 N_lyapunov = 100; % number to back-average
