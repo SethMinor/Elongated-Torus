@@ -116,9 +116,9 @@ v2_0 = imag(w2_0);
 %% Integrate the equations of motion
 % Set total time and tolerances
 t0 = 0;
-tf = 300;
+tf = 100;
 timespan = [t0, tf];
-options = odeset('RelTol', 1e-11, 'AbsTol', 1e-11);
+options = odeset('RelTol', 1e-10, 'AbsTol', 1e-10);
 
 % Numerical integration using ode45
 y0 = [u1_0, u2_0, v1_0, v2_0];
@@ -243,6 +243,7 @@ Q_list(:,:,1) = Q_n;
 
 % RK-4 by hand
 disp('Started Q_n loop')
+fprintf('%.f total iterations \n',size(y)-1)
 tic
 for n = 2:length(y)-1
     dt = t(n) - t(n-1);
@@ -260,7 +261,7 @@ for n = 2:length(y)-1
     Q_list(:,:,n) = Q_n;
 
     if mod(n,100) == 0
-        fprintf('Iteration %.f of %.f\n',n,size(y)-1)
+        disp(n)
     end
 end
 toc
@@ -294,7 +295,7 @@ for n = 2:length(y)-1
     rho_list(n,:) = rho_n;
 
     if mod(n,100) == 0
-        fprintf('Iteration %.f of %.f\n',n,size(y)-1)
+        disp(n)
     end
 end
 toc
