@@ -368,17 +368,33 @@ end
 function J = myjacobian(func,x)
     % Set numerical derivative parameters
     N = length(x);
-    F_at_x = feval(func,x);
-    epsilon = 1E-12;
+    %F_at_x = feval(func,x);
+    epsilon = 1E-8;
 
     % Compute numerical derivative
     xperturb = x;
+    xperturb2 = x; 
+    xperturb_minus = x;
+    xperturb_minus2 = x;
     %xperturb = x + epsilon;
     J = zeros(N);
     for i = 1:N
         xperturb(i) = xperturb(i) + epsilon;
-        J(:,i) = (feval(func,xperturb) - F_at_x)/epsilon;
+        xperturb2(i) = xperturb2(i) + 2*epsilon;
+
+        xperturb_minus(i) = xperturb_minus(i) - epsilon;
+        xperturb_minus2(i) = xperturb_minus2(i) - 2*epsilon;
+
+        %J(:,i) = (feval(func,xperturb) - F_at_x)/epsilon;
+        %J(:,i) = (feval(func,xperturb) - feval(func,xperturb_minus))/(2*epsilon);
+        % Fourth order scheme
+        J(:,i) = (-feval(func,xperturb2) + 8*feval(func,xperturb) ...
+            - 8*feval(func,xperturb_minus) + feval(func,xperturb_minus2))/(12*epsilon);
+
         xperturb(i) = x(i);
+        xperturb2(i) = x(i);
+        xperturb_minus(i) = x(i);
+        xperturb_minus2(i) = x(i);
     end
 end
 
