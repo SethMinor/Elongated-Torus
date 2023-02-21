@@ -54,11 +54,13 @@ for i = 1:3
 end
 
 %% Plot the spectrum
+plot_every = 10; % Speed-up for plotting
+
 figure (2)
 sgtitle('Lyapunov Spectrum (Lorenz)','Interpreter','latex','FontSize',fs+2)
 
 subplot(3,1,1)
-plot(t, rho_list(:,1)./t)
+plot(t(1:plot_every:end), rho_list(1:plot_every:end,1)./t(1:plot_every:end))
 hold on
 yline(Lyapunov(1),'--k')
 yline(L1,'-r','LineWidth',0.3)
@@ -71,7 +73,7 @@ legend('Numerical','Averaged','Accepted value','Interpreter','latex')
 ylim([0.5, 1.5])
 
 subplot(3,1,2)
-plot(t, rho_list(:,2)./t)
+plot(t(1:plot_every:end), rho_list(1:plot_every:end,2)./t(1:plot_every:end))
 hold on
 yline(Lyapunov(2),'--k')
 yline(L2,'-r','LineWidth',0.3)
@@ -84,7 +86,7 @@ legend('Numerical','Averaged','Accepted value','Interpreter','latex')
 ylim([-0.5, 0.5])
 
 subplot(3,1,3)
-plot(t, rho_list(:,3)./t)
+plot(t(1:plot_every:end), rho_list(1:plot_every:end,3)./t(1:plot_every:end))
 hold on
 yline(Lyapunov(3),'--k')
 yline(L3,'-r','LineWidth',0.3)
