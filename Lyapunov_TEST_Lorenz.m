@@ -19,9 +19,9 @@ b = 8/3;
 % Integrate the equations of motion
 % Set total time and tolerances
 t0 = 0;
-tf = 100;
+tf = 600;
 timespan = [t0, tf];
-options = odeset('RelTol', 1e-9, 'AbsTol', 1e-9);
+options = odeset('RelTol', 1e-10, 'AbsTol', 1e-10);
 
 % Define the RHS of the Lorenz system
 % For computing the numerical Jacobian
@@ -38,7 +38,8 @@ Y0 = [y0; reshape(Q0,[length(Q0)^2,1]); p0];
 
 % Plot the attractor
 figure (1)
-plot3(y(:,1), y(:,2), y(:,3))
+plot_every = 15; % Speed-up for plotting
+plot3(y(1:plot_every:end,1), y(1:plot_every:end,2), y(1:plot_every:end,3))
 grid on
 
 %% Compute Lyapunov exponents
@@ -54,7 +55,7 @@ for i = 1:3
 end
 
 %% Plot the spectrum
-plot_every = 10; % Speed-up for plotting
+plot_every = 25; % Speed-up for plotting
 
 figure (2)
 sgtitle('Lyapunov Spectrum (Lorenz)','Interpreter','latex','FontSize',fs+2)
