@@ -123,7 +123,7 @@ Z(isinf(Z)) = NaN;
 Z = Z./max(abs(Z),[],'all');
 
 figure (2)
-sgtitle("Parameters: $a=$ "+a+", $R=$ "+R+", $r=$"+r, 'interpreter', 'latex')
+sgtitle("Parameters: $a=$ "+a+", $R=$ "+R+", $r=$ "+r, 'interpreter', 'latex')
 
 subplot(2,1,1)
 surf(Theta1, Theta2, Z)
