@@ -94,8 +94,6 @@ p = exp(-gr); % nome (for periodicity)
 
 %% Initial conditions for vortices
 % Initial vortex positions in [-pi*c,pi*c]x[cgl,cgr]
-% [-pi*c,pi*c] = [-33.2475, 33.2475]
-% [cgl,cgr] = [-10.5830, 10.5830]
 w1_0 = (-30) + 1i*(-10); % positive vortex
 w2_0 = (6) + 1i*(5); % negative vortex
 
