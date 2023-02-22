@@ -5,9 +5,9 @@ clear, clc, clf;
 fs = 12;
 
 % Parameters
-a = 5;
-R = 5;
-r = 4.5;
+a = 16;
+R = 15;
+r = 4;
 c = sqrt(R^2 - r^2);
 myalpha = r/R;
 
@@ -104,7 +104,7 @@ E =@(phi1, phi2, theta1, theta2) hamiltonian_contour(u(phi1), u(phi2), v(theta1)
 
 % Fix Hamiltonian in two variables
 phi1_const = 0;
-phi2_const = phi1_const;
+phi2_const = 1;
 E_contour =@(Theta1, Theta2) E(phi1_const, phi2_const, Theta1, Theta2);
 
 % Plot contours of Hamiltonian
@@ -132,7 +132,7 @@ colormap parula;
 clim([-0.12 0])
 shading flat
 grid on
-title("Hamiltonian for $\phi_1=\phi_2=$ "+phi1_const, 'interpreter', 'latex')
+title("Hamiltonian for $\phi_1=$ "+phi1_const+", $\phi_2=$ "+phi2_const, 'interpreter', 'latex')
 xlabel('$\theta_1$', 'interpreter', 'latex')
 ylabel('$\theta_1$', 'interpreter', 'latex')
 zlabel('Normalized Energy, $E/E_{max}$', 'interpreter', 'latex')
@@ -143,7 +143,7 @@ colormap parula;
 clim([-0.12 0])
 colorbar
 grid on
-title("Contours of Hamiltonian for $\phi_1=\phi_2=$ "+phi1_const, 'interpreter', 'latex')
+title("Contours of Hamiltonian for $\phi_1=$ "+phi1_const+", $\phi_2=$ "+phi2_const, 'interpreter', 'latex')
 xlabel('$\theta_1$', 'interpreter', 'latex')
 ylabel('$\theta_1$', 'interpreter', 'latex')
 zlabel('Normalized Energy, $E/E_{max}$', 'interpreter', 'latex')
