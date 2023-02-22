@@ -94,8 +94,6 @@ p = exp(-gr); % nome (for periodicity)
 
 %% Initial seeds for root-finding
 % Initial vortex positions in [-pi*c,pi*c]x[cgl,cgr]
-% [-pi*c,pi*c] = [-33.2475, 33.2475]
-% [cgl,cgr] = [-10.9479, 10.9479]
 w1_0 = (0) + 1i*(5); % positive vortex
 w2_0 = (0) + 1i*(-5); % negative vortex
 
@@ -129,29 +127,9 @@ J = myjacobian(F,Wstar);
 % Eigenvectors and eigenvalues
 [V, lambdas] = eig(J);
 
-
 %% Function definitions
 % RHS of nonlinear isothermal coords ODE
 function dydx = odefcn(theta, phi, a, R, r)
   gamma = sqrt((a+r*cos(theta)).^2.*sin(phi).^2 + (R+r*cos(theta)).^2.*cos(phi).^2);
   dydx = -1i*(r/gamma);
-end
-
-% Numerical Jacobian matrix
-% See (https://www.maths.lth.se/na/courses/FMN081/FMN081-06/lecture7.pdf)
-function J = myjacobian(func,x)
-    % Set numerical derivative parameters
-    N = length(x);
-    F_at_x = feval(func,x);
-    epsilon = 1E-10;
-
-    % Compute numerical derivative
-    xperturb = x;
-    %xperturb = x + epsilon;
-    J = zeros(N);
-    for i = 1:N
-        xperturb(i) = xperturb(i) + epsilon;
-        J(:,i) = (feval(func,xperturb) - F_at_x)/epsilon;
-        xperturb(i) = x(i);
-    end
 end
