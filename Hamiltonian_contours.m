@@ -7,7 +7,7 @@ fs = 12;
 % Parameters
 a = 5;
 R = 5;
-r = 4;
+r = 4.5;
 c = sqrt(R^2 - r^2);
 myalpha = r/R;
 
@@ -123,11 +123,13 @@ Z(isinf(Z)) = NaN;
 Z = Z./max(abs(Z),[],'all');
 
 figure (2)
+sgtitle("Parameters: $a=$ "+a+", $R=$ "+R+", $r=$"+r, 'interpreter', 'latex')
+
 subplot(2,1,1)
 surf(Theta1, Theta2, Z)
 colorbar
 colormap parula;
-clim([-0.1 0])
+clim([-0.12 0])
 shading flat
 grid on
 title("Hamiltonian for $\phi_1=\phi_2=$ "+phi1_const, 'interpreter', 'latex')
@@ -138,7 +140,7 @@ zlabel('Normalized Energy, $E/E_{max}$', 'interpreter', 'latex')
 subplot(2,1,2)
 contour(Theta1, Theta2, Z, 2*mesh_density)
 colormap parula;
-clim([-0.1 0])
+clim([-0.12 0])
 colorbar
 grid on
 title("Contours of Hamiltonian for $\phi_1=\phi_2=$ "+phi1_const, 'interpreter', 'latex')
