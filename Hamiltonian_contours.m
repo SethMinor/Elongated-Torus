@@ -5,9 +5,9 @@ clear, clc, clf;
 fs = 12;
 
 % Parameters
-a = 16;
-R = 15;
-r = 4;
+a = 12;
+R = 12;
+r = 9;
 c = sqrt(R^2 - r^2);
 myalpha = r/R;
 
@@ -98,58 +98,98 @@ q = [q1 q2];   % vector of vortex charges
 N = length(q); % keeping track of number of vortices
 
 %% Find contours of constant energy
-% Hamiltonian as anonymous function
-E =@(phi1, phi2, theta1, theta2) hamiltonian_contour(u(phi1), u(phi2), v(theta1), v(theta2),...
-    N,q,p,c,r,a,R,cap,phi,theta,gr);
+% % Hamiltonian as anonymous function
+% E =@(phi1, phi2, theta1, theta2) hamiltonian_contour(u(phi1), u(phi2), v(theta1), v(theta2),...
+%     N,q,p,c,r,a,R,cap,phi,theta,gr);
+% 
+% % Fix Hamiltonian in two variables
+% phi1_const = 0;
+% phi2_const = 1;
+% E_contour =@(Theta1, Theta2) E(phi1_const, phi2_const, Theta1, Theta2);
+% 
+% % Plot contours of Hamiltonian
+% mesh_density = 150; % Density for contour plot
+% theta1 = linspace(-pi, pi, mesh_density);
+% theta2 = linspace(-pi, pi, mesh_density);
+% [Theta1, Theta2] = meshgrid(theta1, theta2);
+% Z = E_contour(Theta1, Theta2);
+% Z = reshape(Z, [mesh_density, mesh_density]); % Reshape into matrix
+% 
+% % Remove Infs from Z
+% % Just set to NaN
+% Z(isinf(Z)) = NaN;
+% 
+% % Normalize Z
+% Z = Z./max(abs(Z),[],'all');
+% 
+% figure (2)
+% sgtitle("Parameters: $a=$ "+a+", $R=$ "+R+", $r=$ "+r, 'interpreter', 'latex')
+% 
+% subplot(2,1,1)
+% surf(Theta1, Theta2, Z)
+% colorbar
+% colormap parula;
+% clim([-0.12 0])
+% shading flat
+% grid on
+% title("Hamiltonian for $\phi_1=$ "+phi1_const+", $\phi_2=$ "+phi2_const, 'interpreter', 'latex')
+% xlabel('$\theta_1$', 'interpreter', 'latex')
+% ylabel('$\theta_1$', 'interpreter', 'latex')
+% zlabel('Normalized Energy, $E/E_{max}$', 'interpreter', 'latex')
+% 
+% subplot(2,1,2)
+% contour(Theta1, Theta2, Z, 2*mesh_density)
+% colormap parula;
+% clim([-0.12 0])
+% colorbar
+% grid on
+% title("Contours of Hamiltonian for $\phi_1=$ "+phi1_const+", $\phi_2=$ "+phi2_const, 'interpreter', 'latex')
+% xlabel('$\theta_1$', 'interpreter', 'latex')
+% ylabel('$\theta_1$', 'interpreter', 'latex')
+% zlabel('Normalized Energy, $E/E_{max}$', 'interpreter', 'latex')
+% 
+% % CAN ALSO DISPLAY ISOSURFACES AT A CERTAIN ENERGY (?)
+% % see https://www.mathworks.com/help/matlab/ref/contour.html
 
-% Fix Hamiltonian in two variables
-phi1_const = 0;
-phi2_const = 1;
-E_contour =@(Theta1, Theta2) E(phi1_const, phi2_const, Theta1, Theta2);
+%% Isosurfaces for circular torus
+% Energy levels to check
+E0 = [0, 175, 350, 525, 705]; % Appears that upper limit M ~ 705 for energy
 
-% Plot contours of Hamiltonian
-mesh_density = 150; % Density for contour plot
-theta1 = linspace(-pi, pi, mesh_density);
-theta2 = linspace(-pi, pi, mesh_density);
-[Theta1, Theta2] = meshgrid(theta1, theta2);
-Z = E_contour(Theta1, Theta2);
-Z = reshape(Z, [mesh_density, mesh_density]); % Reshape into matrix
+% Circular torus gamma in isothermal
+gamma_c =@(v) c./(R - r*cos(v./r));
 
-% Remove Infs from Z
-% Just set to NaN
-Z(isinf(Z)) = NaN;
+% Define fcn for implicit surface
+f_E =@(d,v1,v2) log(abs(jacobitheta1((d + 1i*(v1-v2))./(2*c),p,cap).*jacobitheta1(-(d + 1i*(v1-v2))./(2*c),p,cap)).*...
+    gamma_c(v1).*gamma_c(v2).*exp(0.5*(c^2*gr)*(d.^2)));
 
-% Normalize Z
-Z = Z./max(abs(Z),[],'all');
+% Solving this BL
+d = 0:0.5:(2*pi*c);
+v1 = (-pi*r):0.5:(pi*r);
+v2 = v1;
+[D,V1,V2] = meshgrid(d, v1, v2);
+V = f_E(D,V1,V2);
 
+% Plot it!
 figure (2)
-sgtitle("Parameters: $a=$ "+a+", $R=$ "+R+", $r=$ "+r, 'interpreter', 'latex')
+for i = 1:length(E0)
+    isosurface(D, V1, V2, V, log(c^2*exp(E0(i))));
+    alpha(0.9)
+    hold on
+end
 
-subplot(2,1,1)
-surf(Theta1, Theta2, Z)
-colorbar
-colormap parula;
-clim([-0.12 0])
-shading flat
 grid on
-title("Hamiltonian for $\phi_1=$ "+phi1_const+", $\phi_2=$ "+phi2_const, 'interpreter', 'latex')
-xlabel('$\theta_1$', 'interpreter', 'latex')
-ylabel('$\theta_1$', 'interpreter', 'latex')
-zlabel('Normalized Energy, $E/E_{max}$', 'interpreter', 'latex')
+%xlim([0, 2*pi*c])
+%ylim([-pi*r, pi*r])
+%zlim([-pi*r, pi*r])
 
-subplot(2,1,2)
-contour(Theta1, Theta2, Z, 2*mesh_density)
-colormap parula;
-clim([-0.12 0])
-colorbar
-grid on
-title("Contours of Hamiltonian for $\phi_1=$ "+phi1_const+", $\phi_2=$ "+phi2_const, 'interpreter', 'latex')
-xlabel('$\theta_1$', 'interpreter', 'latex')
-ylabel('$\theta_1$', 'interpreter', 'latex')
-zlabel('Normalized Energy, $E/E_{max}$', 'interpreter', 'latex')
-
-% CAN ALSO DISPLAY ISOSURFACES AT A CERTAIN ENERGY (?)
-% see https://www.mathworks.com/help/matlab/ref/contour.html
+title('$H(u_1, u_2, v_1, v_2) = E_0$', 'interpreter', 'latex','FontSize',fs+2)
+xlabel('$\delta = u_1 - u_2$', 'interpreter', 'latex','FontSize',fs+2)
+ylabel('$v_1$', 'interpreter', 'latex','FontSize',fs+2)
+zlabel('$v_2$', 'interpreter', 'latex','FontSize',fs)
+legend("$E_0=$ "+E0(1), "$E_0=$ "+E0(2),"$E_0=$ "+E0(3), "$E_0=$ "+E0(4),...
+    "$E_0=$ "+E0(5), 'interpreter', 'latex')
+%camlight
+%lighting gouraud;
 
 %% Function definitions
 % RHS of nonlinear isothermal coords ODE
