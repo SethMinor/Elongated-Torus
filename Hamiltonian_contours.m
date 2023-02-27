@@ -5,9 +5,9 @@ clear, clc, clf;
 fs = 12;
 
 % Parameters
-a = 12;
-R = 12;
-r = 9;
+a = 13;
+R = 11;
+r = 3;
 c = sqrt(R^2 - r^2);
 myalpha = r/R;
 
@@ -149,32 +149,85 @@ N = length(q); % keeping track of number of vortices
 % zlabel('Normalized Energy, $E/E_{max}$', 'interpreter', 'latex')
 
 %% Isosurfaces for circular torus
-% Energy levels to check
-E0 = linspace(-5, 5, 10);
+% % Energy levels to check
+% E0 = linspace(-5, 5, 10);
+% 
+% % Circular torus gamma in isothermal
+% gamma_c =@(v) R + r*cos(2*atan(sqrt((R+r)/(R-r))*tan(v/(2*r))));
+% 
+% % Define fcn for implicit surface
+% f_E =@(v1,v2,d) log(abs( jacobitheta1((d + 1i*(v1-v2))./(2*c),p,cap) )) + ...
+%     log(abs( jacobitheta1(-(d + 1i*(v1-v2))./(2*c),p,cap) )) + ...
+%     log(gamma_c(v1).*gamma_c(v2)./(c^2)) + ...
+%     (1/(2*c^2*gr))*(d.^2);
+% 
+% % Solving this BL
+% mesh_density = 0.3;
+% 
+% d = -2*pi*c:mesh_density:(2*pi*c);
+% v1 = (-pi*r):mesh_density:(pi*r);
+% v2 = v1;
+% 
+% [V1,V2,D] = meshgrid(v1, v2, d);
+% V = f_E(V1,V2,D);
+% 
+% % Plot it!
+% figure (2)
+% for i = 1:length(E0)
+%     isosurface(V1, V2, D, V, E0(i));
+%     alpha(0.8)
+%     hold on
+% end
+% 
+% grid on
+% %xlim([0, 2*pi*c])
+% %ylim([-pi*r, pi*r])
+% %zlim([-pi*r, pi*r])
+% 
+% title("$H(u_1, u_2, v_1, v_2) = E_0$,  for  $(a,R,r)=($"+a+","+R+","+r+")", ...
+%     'interpreter', 'latex','FontSize',fs+2)
+% xlabel('$v_1$', 'interpreter', 'latex','FontSize',fs+2)
+% ylabel('$v_2$', 'interpreter', 'latex','FontSize',fs)
+% zlabel('$\delta = u_1 - u_2$', 'interpreter', 'latex','FontSize',fs+2)
+% legend("$E_0=$ "+E0(1), "$E_0=$ "+E0(2),"$E_0=$ "+E0(3), "$E_0=$ "+E0(4),...
+%     "$E_0=$ "+E0(5), "$E_0=$ "+E0(6), "$E_0=$ "+E0(7), "$E_0=$ "+E0(8),...
+%     "$E_0=$ "+E0(9), "$E_0=$ "+E0(10), 'interpreter', 'latex')
+% %camlight
+% %lighting gouraud;
 
-% Circular torus gamma in isothermal
-gamma_c =@(v) R + r*cos(2*atan(sqrt((R+r)/(R-r))*tan(v/(2*r))));
+%% Isosurfaces for elongated torus
+% Energy levels to check
+%E0 = linspace(-5, 5, 10);
+E0 = 1;
+
+% Set u2 = constant
+constant = 1;
 
 % Define fcn for implicit surface
-f_E =@(v1,v2,d) log(abs( jacobitheta1((d + 1i*(v1-v2))./(2*c),p,cap) )) + ...
-    log(abs( jacobitheta1(-(d + 1i*(v1-v2))./(2*c),p,cap) )) + ...
-    log(gamma_c(v1).*gamma_c(v2)./(c^2)) + ...
-    (1/(2*c^2*gr))*(d.^2);
+f_E =@(u1,v1,v2) log(abs( jacobitheta1(((u1 - constant) + 1i*(v1-v2))./(2*c),p,cap) )) + ...
+    log(abs( jacobitheta1(-((u1 - constant) + 1i*(v1-v2))./(2*c),p,cap) )) + ...
+    log(gamma(u1./c, theta(v1)).*gamma(constant./c, theta(v2))./(c^2)) + ...
+    (1/(2*c^2*gr))*((u1 - constant).^2);
+
+% is the 'theta' fcn gonna be a butt (?)
+% Make a 'theta_for_tensors' fcn (?)
+% theta( reshape(V1,[numel(V1),1]) ) and then reshape again (?)
+% reshape(..., [length(V1(:,1,:)), length(V1(:,:,1)), length(V1(:,1,:))]) (?)
 
 % Solving this BL
-mesh_density = 0.3;
+mesh_density = 0.5;
 
-d = -2*pi*c:mesh_density:(2*pi*c);
+u1 = (-pi*c):mesh_density:(pi*c);
 v1 = (-pi*r):mesh_density:(pi*r);
 v2 = v1;
 
-[V1,V2,D] = meshgrid(v1, v2, d);
-V = f_E(V1,V2,D);
+[U1, V1,V2] = meshgrid(u1, v1, v2);
+volume = f_E(U1,V1,V2);
 
 % Plot it!
 figure (2)
 for i = 1:length(E0)
-    isosurface(V1, V2, D, V, E0(i));
+    isosurface(U1, V1, V2, volume, E0(i));
     alpha(0.8)
     hold on
 end
@@ -186,12 +239,14 @@ grid on
 
 title("$H(u_1, u_2, v_1, v_2) = E_0$,  for  $(a,R,r)=($"+a+","+R+","+r+")", ...
     'interpreter', 'latex','FontSize',fs+2)
+subtitle("Slice: $u_2=$ "+constant,'interpreter', 'latex','FontSize',fs+2)
 xlabel('$v_1$', 'interpreter', 'latex','FontSize',fs+2)
 ylabel('$v_2$', 'interpreter', 'latex','FontSize',fs)
 zlabel('$\delta = u_1 - u_2$', 'interpreter', 'latex','FontSize',fs+2)
-legend("$E_0=$ "+E0(1), "$E_0=$ "+E0(2),"$E_0=$ "+E0(3), "$E_0=$ "+E0(4),...
-    "$E_0=$ "+E0(5), "$E_0=$ "+E0(6), "$E_0=$ "+E0(7), "$E_0=$ "+E0(8),...
-    "$E_0=$ "+E0(9), "$E_0=$ "+E0(10), 'interpreter', 'latex')
+legend("$E_0=$ "+E0(1), 'interpreter', 'latex')
+% legend("$E_0=$ "+E0(1), "$E_0=$ "+E0(2),"$E_0=$ "+E0(3), "$E_0=$ "+E0(4),...
+%     "$E_0=$ "+E0(5), "$E_0=$ "+E0(6), "$E_0=$ "+E0(7), "$E_0=$ "+E0(8),...
+%     "$E_0=$ "+E0(9), "$E_0=$ "+E0(10), 'interpreter', 'latex')
 %camlight
 %lighting gouraud;
 
@@ -202,37 +257,37 @@ function dydx = odefcn(theta, phi, a, R, r)
   dydx = -1i*(r/gamma);
 end
 
-% Hamiltonian for contours
-function [energy,classic,curve,quantum] = hamiltonian_contour(u1,u2,v1,v2,N,q,p,c,r,a,R,cap,phi,theta,gr)
-    U = [u1, u2];
-    V = [v1, v2];
-    W = U + 1i*V;
-    
-    % Gamma
-    gamma =@(phi,theta) sqrt((a+r*cos(theta)).^2.*sin(phi).^2 + (R+r*cos(theta)).^2.*cos(phi).^2);
-    
-    % Local scale factor
-    L =@(u,v) gamma(phi(u),theta(v))/c;
-    
-    % Initialize energy contributions
-    classic = 0; curve = 0; quantum = 0;
-    
-    % Loop over each vortex pair
-    for n = 1:N
-        % Curvature contribution
-        curve = curve + log(L(U(:,n),V(:,n)));
-    
-        for m = 1:N
-            % quantum contribution
-            quantum = quantum + (1/(2*c^2*gr)).*q(n).*q(m).*U(:,n).*U(:,m);
-    
-            if (m ~= n)
-                % classical contribution
-                thetus = (W(:,n) - W(:,m))./(2*c);
-                classic = classic -...
-                    (q(n).*q(m).*log(abs(jacobitheta1(thetus,p,cap))));
-            end
-        end
-    end
-    energy = classic + curve + quantum;
-end
+% % Hamiltonian for contours
+% function [energy,classic,curve,quantum] = hamiltonian_contour(u1,u2,v1,v2,N,q,p,c,r,a,R,cap,phi,theta,gr)
+%     U = [u1, u2];
+%     V = [v1, v2];
+%     W = U + 1i*V;
+%     
+%     % Gamma
+%     gamma =@(phi,theta) sqrt((a+r*cos(theta)).^2.*sin(phi).^2 + (R+r*cos(theta)).^2.*cos(phi).^2);
+%     
+%     % Local scale factor
+%     L =@(u,v) gamma(phi(u),theta(v))/c;
+%     
+%     % Initialize energy contributions
+%     classic = 0; curve = 0; quantum = 0;
+%     
+%     % Loop over each vortex pair
+%     for n = 1:N
+%         % Curvature contribution
+%         curve = curve + log(L(U(:,n),V(:,n)));
+%     
+%         for m = 1:N
+%             % quantum contribution
+%             quantum = quantum + (1/(2*c^2*gr)).*q(n).*q(m).*U(:,n).*U(:,m);
+%     
+%             if (m ~= n)
+%                 % classical contribution
+%                 thetus = (W(:,n) - W(:,m))./(2*c);
+%                 classic = classic -...
+%                     (q(n).*q(m).*log(abs(jacobitheta1(thetus,p,cap))));
+%             end
+%         end
+%     end
+%     energy = classic + curve + quantum;
+% end
