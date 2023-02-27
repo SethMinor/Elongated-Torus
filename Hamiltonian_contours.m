@@ -151,19 +151,19 @@ N = length(q); % keeping track of number of vortices
 %% Isosurfaces for circular torus
 % Energy levels to check
 %E0 = [-300, -200, - 10, -60, 0, 60, 175, 330, 510, 800];
-E0 = linspace(-5, 0, 10);
+E0 = linspace(-20, 150, 10);
 
 % Circular torus gamma in isothermal
-gamma_c =@(v) c./(R - r*cos(v./r));
+gamma_c =@(v) R + r*cos(theta(v));
 
 % Define fcn for implicit surface
 f_E =@(v1,v2,d) log(abs( jacobitheta1((d + 1i*(v1-v2))./(2*c),p,cap) )) + ...
     log(abs( jacobitheta1(-(d + 1i*(v1-v2))./(2*c),p,cap) )) + ...
     log(gamma_c(v1).*gamma_c(v2)./(c^2)) + ...
-    (c^2*gr/2).*d.^2;
+    (1/(2*c^2*gr))*(d.^2);
 
 % Solving this BL
-mesh_density = 0.2;
+mesh_density = 0.3;
 
 d = -2*pi*c:mesh_density:(2*pi*c);
 v1 = (-pi*r):mesh_density:(pi*r);
