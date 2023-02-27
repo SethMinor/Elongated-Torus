@@ -197,7 +197,7 @@ N = length(q); % keeping track of number of vortices
 
 %% Isosurfaces for elongated torus
 % Energy levels to check
-E0 = linspace(-5, 5, 10);
+E0 = linspace(-15, 15, 10);
 %E0 = 1;
 
 % Set u2 = constant
@@ -247,10 +247,9 @@ subtitle("Slice: $u_2=$ "+constant,'interpreter', 'latex','FontSize',fs+2)
 xlabel('$u_1$', 'interpreter', 'latex','FontSize',fs+2)
 ylabel('$v_1$', 'interpreter', 'latex','FontSize',fs)
 zlabel('$v_2$', 'interpreter', 'latex','FontSize',fs+2)
-legend("$E_0=$ "+E0(1), 'interpreter', 'latex')
-% legend("$E_0=$ "+E0(1), "$E_0=$ "+E0(2),"$E_0=$ "+E0(3), "$E_0=$ "+E0(4),...
-%     "$E_0=$ "+E0(5), "$E_0=$ "+E0(6), "$E_0=$ "+E0(7), "$E_0=$ "+E0(8),...
-%     "$E_0=$ "+E0(9), "$E_0=$ "+E0(10), 'interpreter', 'latex')
+legend("$E_0=$ "+E0(1), "$E_0=$ "+E0(2),"$E_0=$ "+E0(3), "$E_0=$ "+E0(4),...
+    "$E_0=$ "+E0(5), "$E_0=$ "+E0(6), "$E_0=$ "+E0(7), "$E_0=$ "+E0(8),...
+    "$E_0=$ "+E0(9), "$E_0=$ "+E0(10), 'interpreter', 'latex')
 camlight
 %lighting gouraud;
 
