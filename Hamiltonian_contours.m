@@ -150,7 +150,6 @@ N = length(q); % keeping track of number of vortices
 
 %% Isosurfaces for circular torus
 % Energy levels to check
-%E0 = [-300, -200, - 10, -60, 0, 60, 175, 330, 510, 800];
 E0 = linspace(-5, 5, 10);
 
 % Circular torus gamma in isothermal
