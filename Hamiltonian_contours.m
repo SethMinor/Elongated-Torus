@@ -151,7 +151,7 @@ N = length(q); % keeping track of number of vortices
 %% Isosurfaces for circular torus
 % Energy levels to check
 %E0 = [-300, -200, - 10, -60, 0, 60, 175, 330, 510, 800];
-E0 = linspace(-20, 150, 2);
+E0 = linspace(-5, 5, 10);
 
 % Circular torus gamma in isothermal
 gamma_c =@(v) R + r*cos(2*atan(sqrt((R+r)/(R-r))*tan(v/(2*r))));
@@ -190,9 +190,10 @@ title("$H(u_1, u_2, v_1, v_2) = E_0$,  for  $(a,R,r)=($"+a+","+R+","+r+")", ...
 xlabel('$v_1$', 'interpreter', 'latex','FontSize',fs+2)
 ylabel('$v_2$', 'interpreter', 'latex','FontSize',fs)
 zlabel('$\delta = u_1 - u_2$', 'interpreter', 'latex','FontSize',fs+2)
-legend("$E_0=$ "+E0(1), "$E_0=$ "+E0(2),"$E_0=$ "+E0(3), "$E_0=$ "+E0(4),...
-    "$E_0=$ "+E0(5), "$E_0=$ "+E0(6), "$E_0=$ "+E0(7), "$E_0=$ "+E0(8),...
-    "$E_0=$ "+E0(9), "$E_0=$ "+E0(10), 'interpreter', 'latex')
+legend("$E_0=$ "+E0(1), 'interpreter', 'latex')
+% legend("$E_0=$ "+E0(1), "$E_0=$ "+E0(2),"$E_0=$ "+E0(3), "$E_0=$ "+E0(4),...
+%     "$E_0=$ "+E0(5), "$E_0=$ "+E0(6), "$E_0=$ "+E0(7), "$E_0=$ "+E0(8),...
+%     "$E_0=$ "+E0(9), "$E_0=$ "+E0(10), 'interpreter', 'latex')
 %camlight
 %lighting gouraud;
 
