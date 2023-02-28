@@ -107,22 +107,24 @@ N = length(q); % keeping track of number of vortices
 
 % ode45 with events function
 t0 = 0;
-tf = 5000;
+tf = 10000;
 timespan = [t0, tf];
-options = odeset('RelTol', 1e-11, 'AbsTol', 1e-11, 'Events', @EventsFcn);
+options = odeset('RelTol', 1e-10, 'AbsTol', 1e-10, 'Events', @EventsFcn);
 
 % Create list of isosurface ICs (u2 = constant)
 % 2 x N matrix of complex numbers (mayber N=5 or 6ish)
 %u2_const = 0;
 % Vortex 1 ICs (positive)
-orbit_list(1,:) = [1.55251, -1.65318, 2.35251, -2.84749, 2.75251, -4.44749, 21.3725, 24.7525, 28.052, -7.19304, -10.4475]...
-    + 1i*[2.17522, -0.624778, -1.82478, -5.42478, -7.77478, -6.62478, 4.97522, 3.35582, -8.62478, 0.175222, -1.42478];
+orbit_list(1,:) = [14, 14, 12.0525, 13.8525, 11.1525, 13.8525]...
+    + 1i*[5, -5, -3.12478, -6.42478, 1.37522, 8.57522];
  % Vortex 2 ICs (negative)
-orbit_list(2,:) = [0, 0, 0, 0, 0, 0, 25, 25, 25, -10, -10]...
-    + 1i*[5.8642, 2.17522, 0.270659, -2.76956, -4.22478, -6.44477, 6.17522, 7.37522, -5.42478, 0.175222, 1.51355];
+orbit_list(2,:) = [14, 14, 14, 14, 14, 14]...
+    + 1i*[-5, 5, 5.76358, 7.74949, -6.56842, -5.89583];
 
 % REMEMBER that shown surfaces are just slices of full 3D volume
 % So ICs on the shown surface may 4D rotate into u2 =/= 0
+
+% Periodic orbits for u1=u2, v1=-v2
 
 for IC_number = 1:length(orbit_list)
     plot_counter = plot_counter + 1;
@@ -166,6 +168,7 @@ for IC_number = 1:length(orbit_list)
         ylabel('$\phi_2$','Interpreter','latex','FontSize',fs)
         xlim([-pi, pi])
         ylim([-pi, pi])
+        grid on
         hold on
         
         subplot (2,2,2)
@@ -174,6 +177,7 @@ for IC_number = 1:length(orbit_list)
         ylabel('$\theta_2$','Interpreter','latex','FontSize',fs)
         xlim([-pi, pi])
         ylim([-pi, pi])
+        grid on
         hold on
 
         subplot (2,2,3)
