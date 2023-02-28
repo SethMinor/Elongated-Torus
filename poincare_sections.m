@@ -92,10 +92,9 @@ lambda =@(phi,theta) gamma(phi,theta)./c;
 cap = 20;     % truncation error
 p = exp(-gr); % nome (for periodicity)
 
-
 %% Giant for-loop over ICs
 % Want to export images?
-export_bool = true;
+export_bool = false;
 working_dir = 'C:\Users\sminor2848\Downloads\Elongated-Torus-main\Elongated-Torus-main\pics\';
 
 plot_counter = 0;
@@ -112,85 +111,107 @@ tf = 5000;
 timespan = [t0, tf];
 options = odeset('RelTol', 1e-11, 'AbsTol', 1e-11, 'Events', @EventsFcn);
 
-for u1pert = 14:0.2:22
-    for u2pert = 14
-        for v1pert = 5
-            for v2pert = -5
-                plot_counter = plot_counter + 1;
-                % Initial conditions for vortices
-                % Initial vortex positions in [-pi*c,pi*c]x[cgl,cgr]
-                % [-pi*c,pi*c] = [-33.2475, 33.2475]
-                % [cgl,cgr] = [-10.5830, 10.5830]
-                w1_0 = (u1pert) + 1i*(v1pert); % positive vortex
-                w2_0 = (u2pert) + 1i*(v2pert); % negative vortex
-                
-                % real and imaginary parts of isothermal coords
-                u1_0 = real(w1_0);
-                v1_0 = imag(w1_0);
-                
-                u2_0 = real(w2_0);
-                v2_0 = imag(w2_0);
-            
-                % Compute Poincare sections
-                % Numerical integration using ode45 or ode15s
-                y0 = [u1_0, u2_0, v1_0, v2_0];
-                [T,Y,Te,Ye,Ie] = ode15s(@(t,y) vortex_velocity_v2(0,y,0,N,q,r,a,R,c,p,cap,theta,Dginv,gr),...
-                    timespan, y0, options);
-                
-                if isempty(Ye) == 0
-                    % Plot Poincare section
-                    % Coordinates at Poincare crossings
-                    Ue = Ye(:,1:N); % u-coords
-                    Ue = UVwrap(Ue, [-pi*c, pi*c]);
-                    
-                    Ve = Ye(:,(1+N):2*N); % v-coords
-                    Ve = UVwrap(Ve, [c*gl, c*gr]);
-                    
-                    % Conversion to toroidal-poloidal coordinates
-                    Phi_e = Ue./c;
-                    Theta_e = [theta(Ve(:,1)), theta(Ve(:,2))];
-                    
-                    % Poincare section
-                    figure (3)
-                    sgtitle('Poincare Sections')
-                    subplot (2,1,1)
-                    plot(Phi_e(:,1), Phi_e(:,2),'.')
-                    xlabel('\phi_1')
-                    ylabel('\phi_2')
-                    xlim([-pi, pi])
-                    ylim([-pi, pi])
-                    
-                    subplot (2,1,2)
-                    plot(Theta_e(:,1), Theta_e(:,2),'.')
-                    xlabel('\theta_1')
-                    ylabel('\theta_2')
-                    xlim([-pi, pi])
-                    ylim([-pi, pi])
-                    hold on
+% Create list of isosurface ICs (u2 = constant)
+% 2 x N matrix of complex numbers (mayber N=5 or 6ish)
+%u2_const = 0;
+% Vortex 1 ICs (positive)
+orbit_list(1,:) = [1.55251, -1.65318, 2.35251, -2.84749, 2.75251, -4.44749, 21.3725, 24.7525, 28.052, -7.19304, -10.4475]...
+    + 1i*[2.17522, -0.624778, -1.82478, -5.42478, -7.77478, -6.62478, 4.97522, 3.35582, -8.62478, 0.175222, -1.42478];
+ % Vortex 2 ICs (negative)
+orbit_list(2,:) = [0, 0, 0, 0, 0, 0, 25, 25, 25, -10, -10]...
+    + 1i*[5.8642, 2.17522, 0.270659, -2.76956, -4.22478, -6.44477, 6.17522, 7.37522, -5.42478, 0.175222, 1.51355];
+
+% REMEMBER that shown surfaces are just slices of full 3D volume
+% So ICs on the shown surface may 4D rotate into u2 =/= 0
+
+for IC_number = 1:length(orbit_list)
+    plot_counter = plot_counter + 1;
+    % Initial conditions for vortices
+    % Initial vortex positions in [-pi*c,pi*c]x[cgl,cgr]
+    w1_0 = orbit_list(1, IC_number); % positive vortex
+    w2_0 = orbit_list(2, IC_number); % negative vortex
     
-                    figure (4)
-                    plot3(Theta_e(:,1), Theta_e(:,2),Phi_e(:,1),'.','MarkerSize',3)
-                    xlabel('\theta_1')
-                    ylabel('\theta_2')
-                    zlabel('\phi_1 = \phi_2')
-                    xlim([-pi, pi])
-                    ylim([-pi, pi])
-                    zlim([-pi, pi])
-                    title("$w_1 =$ "+u1_0+"+("+v1_0+")$i$, with "+"$w_2 =$ "+u2_0+"+("+v2_0+")$i$",...
-                        'Interpreter','latex','FontSize',fs)
-                    grid on
-                    hold on
+    % real and imaginary parts of isothermal coords
+    u1_0 = real(w1_0);
+    v1_0 = imag(w1_0);
     
-                    % Export images to folder
-                    if export_bool == true
-                        file_name = sprintf('Poincare_%d.png', plot_counter);
-                        exportgraphics(gcf,strcat(working_dir,file_name));
-                    end
-                end
-                % Finito
-            end
+    u2_0 = real(w2_0);
+    v2_0 = imag(w2_0);
+
+    % Compute Poincare sections
+    % Numerical integration using ode45 or ode15s
+    y0 = [u1_0, u2_0, v1_0, v2_0];
+    [T,Y,Te,Ye,Ie] = ode15s(@(t,y) vortex_velocity_v2(0,y,0,N,q,r,a,R,c,p,cap,theta,Dginv,gr),...
+        timespan, y0, options);
+    
+    if isempty(Ye) == 0
+        % Plot Poincare section
+        % Coordinates at Poincare crossings
+        Ue = Ye(:,1:N); % u-coords
+        Ue = UVwrap(Ue, [-pi*c, pi*c]);
+        
+        Ve = Ye(:,(1+N):2*N); % v-coords
+        Ve = UVwrap(Ve, [c*gl, c*gr]);
+        
+        % Conversion to toroidal-poloidal coordinates
+        Phi_e = Ue./c;
+        Theta_e = [theta(Ve(:,1)), theta(Ve(:,2))];
+        
+        % Poincare section
+        figure (2)
+        sgtitle("Poincare Sections, Energy $= -10/3$",'Interpreter','latex')
+        subplot (2,2,1)
+        plot(Phi_e(:,1), Phi_e(:,2),'.')
+        xlabel('$\phi_1$','Interpreter','latex','FontSize',fs)
+        ylabel('$\phi_2$','Interpreter','latex','FontSize',fs)
+        xlim([-pi, pi])
+        ylim([-pi, pi])
+        hold on
+        
+        subplot (2,2,2)
+        plot(Theta_e(:,1), Theta_e(:,2),'.')
+        xlabel('$\theta_1$','Interpreter','latex','FontSize',fs)
+        ylabel('$\theta_2$','Interpreter','latex','FontSize',fs)
+        xlim([-pi, pi])
+        ylim([-pi, pi])
+        hold on
+
+        subplot (2,2,3)
+        plot(Phi_e(:,1), Theta_e(:,1),'.')
+        xlabel('$\phi_1 = \phi_2$','Interpreter','latex','FontSize',fs)
+        ylabel('$\theta_1$','Interpreter','latex','FontSize',fs)
+        xlim([-pi, pi])
+        ylim([-pi, pi])
+        hold on
+
+        subplot (2,2,4)
+        plot(Phi_e(:,1), Theta_e(:,2),'.')
+        xlabel('$\phi_1 = \phi_2$','Interpreter','latex','FontSize',fs)
+        ylabel('$\theta_2$','Interpreter','latex','FontSize',fs)
+        xlim([-pi, pi])
+        ylim([-pi, pi])
+        hold on
+
+        figure (3)
+        plot3(Theta_e(:,1), Theta_e(:,2), Phi_e(:,1),'.','MarkerSize',3)
+        xlabel('$\theta_1$','Interpreter','latex','FontSize',fs)
+        ylabel('\theta_2')
+        zlabel('$\phi_1 = \phi_2$','Interpreter','latex','FontSize',fs)
+        xlim([-pi, pi])
+        ylim([-pi, pi])
+        zlim([-pi, pi])
+        title("Last plotted: $w_1 =$ "+u1_0+"+("+v1_0+")$i$, with "+"$w_2 =$ "+u2_0+"+("+v2_0+")$i$",...
+            'Interpreter','latex','FontSize',fs)
+        grid on
+        hold on
+
+        % Export images to folder
+        if export_bool == true
+            file_name = sprintf('Poincare_%d.png', plot_counter);
+            exportgraphics(gcf,strcat(working_dir,file_name));
         end
     end
+    % Finito
 end
 
 %% Function definitions
