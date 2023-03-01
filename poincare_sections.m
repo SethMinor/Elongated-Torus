@@ -109,17 +109,17 @@ N = length(q); % keeping track of number of vortices
 t0 = 0;
 tf = 10000;
 timespan = [t0, tf];
-options = odeset('RelTol', 1e-10, 'AbsTol', 1e-10, 'Events', @EventsFcn);
+options = odeset('RelTol', 1e-11, 'AbsTol', 1e-11, 'Events', @EventsFcn);
 
 % Create list of isosurface ICs (u2 = constant)
-% 2 x N matrix of complex numbers (mayber N=5 or 6ish)
+% 2 x N matrix of complex numbers (maybe N=5 or 6ish)
 %u2_const = 0;
 % Vortex 1 ICs (positive)
-orbit_list(1,:) = [14, 14, 12.0525, 13.8525, 11.1525, 13.8525]...
-    + 1i*[5, -5, -3.12478, -6.42478, 1.37522, 8.57522];
+orbit_list(1,:) = [3.5, -3.5 0, 0, 2.24749, 2.25251, 3.01938, -3.01938]...
+    + 1i*[0, 0, 2, -2, -1.49626, 1.64215, 1.07552, 1.07552];
  % Vortex 2 ICs (negative)
-orbit_list(2,:) = [14, 14, 14, 14, 14, 14]...
-    + 1i*[-5, 5, 5.76358, 7.74949, -6.56842, -5.89583];
+orbit_list(2,:) = [0, 0, 0, 0, 0, 0, 0, 0]...
+    + 1i*[0, 0, -2, 2, 1.57522, -1.42478, -0.924778, -0.924778];
 
 % REMEMBER that shown surfaces are just slices of full 3D volume
 % So ICs on the shown surface may 4D rotate into u2 =/= 0
@@ -161,9 +161,9 @@ for IC_number = 1:length(orbit_list)
         
         % Poincare section
         figure (2)
-        sgtitle("Poincare Sections, Energy $= -10/3$",'Interpreter','latex')
+        sgtitle("Poincare Section $(\theta_1 = -\theta_2)$, Energy $E_0 = -3$",'Interpreter','latex')
         subplot (2,2,1)
-        plot(Phi_e(:,1), Phi_e(:,2),'.')
+        plot(Phi_e(:,1), Phi_e(:,2),'.','MarkerSize',3)
         xlabel('$\phi_1$','Interpreter','latex','FontSize',fs)
         ylabel('$\phi_2$','Interpreter','latex','FontSize',fs)
         xlim([-pi, pi])
@@ -172,7 +172,7 @@ for IC_number = 1:length(orbit_list)
         hold on
         
         subplot (2,2,2)
-        plot(Theta_e(:,1), Theta_e(:,2),'.')
+        plot(Theta_e(:,1), Theta_e(:,2),'.','MarkerSize',3)
         xlabel('$\theta_1$','Interpreter','latex','FontSize',fs)
         ylabel('$\theta_2$','Interpreter','latex','FontSize',fs)
         xlim([-pi, pi])
@@ -181,26 +181,26 @@ for IC_number = 1:length(orbit_list)
         hold on
 
         subplot (2,2,3)
-        plot(Phi_e(:,1), Theta_e(:,1),'.')
-        xlabel('$\phi_1 = \phi_2$','Interpreter','latex','FontSize',fs)
-        ylabel('$\theta_1$','Interpreter','latex','FontSize',fs)
+        plot(Phi_e(:,1), Theta_e(:,1),'.','MarkerSize',3)
+        xlabel('$\phi_1$','Interpreter','latex','FontSize',fs)
+        ylabel('$\theta_1 = -\theta_2$','Interpreter','latex','FontSize',fs)
         xlim([-pi, pi])
         ylim([-pi, pi])
         hold on
 
         subplot (2,2,4)
-        plot(Phi_e(:,1), Theta_e(:,2),'.')
-        xlabel('$\phi_1 = \phi_2$','Interpreter','latex','FontSize',fs)
-        ylabel('$\theta_2$','Interpreter','latex','FontSize',fs)
+        plot(Phi_e(:,2), Theta_e(:,2),'.','MarkerSize',3)
+        xlabel('$\phi_2$','Interpreter','latex','FontSize',fs)
+        ylabel('$\theta_2 = -\theta_1$','Interpreter','latex','FontSize',fs)
         xlim([-pi, pi])
         ylim([-pi, pi])
         hold on
 
         figure (3)
-        plot3(Theta_e(:,1), Theta_e(:,2), Phi_e(:,1),'.','MarkerSize',3)
-        xlabel('$\theta_1$','Interpreter','latex','FontSize',fs)
-        ylabel('\theta_2')
-        zlabel('$\phi_1 = \phi_2$','Interpreter','latex','FontSize',fs)
+        plot3(Phi_e(:,1), Phi_e(:,2), Theta_e(:,1),'.','MarkerSize',3)
+        xlabel('$\phi_1$','Interpreter','latex','FontSize',fs)
+        ylabel('$\phi_2$','Interpreter','latex','FontSize',fs)
+        zlabel('$\theta_1 = -\theta_2$','Interpreter','latex','FontSize',fs)
         xlim([-pi, pi])
         ylim([-pi, pi])
         zlim([-pi, pi])
@@ -241,8 +241,8 @@ function [position,isterminal,direction] = EventsFcn(~,y)
   % Toroidal-poloidal cooridnates
   %Phi = U./c;
   % Poincare section
-  %position = V(1) + V(2); % theta1 = -theta2
-  position = U(1) - U(2); % phi1 = phi2
+  position = V(1) + V(2); % theta1 = -theta2
+  %position = U(1) - U(2); % phi1 = phi2
   isterminal = 0;  % Halt integration 
   direction = 0;   % The zero can be approached from either direction
 end
