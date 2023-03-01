@@ -115,11 +115,11 @@ options = odeset('RelTol', 1e-11, 'AbsTol', 1e-11, 'Events', @EventsFcn);
 % 2 x N matrix of complex numbers (maybe N=5 or 6ish)
 %u2_const = 0;
 % Vortex 1 ICs (positive)
-orbit_list(1,:) = [3.5, -3.5 0, 0, 2.24749, 2.25251, 3.01938, -3.01938]...
-    + 1i*[0, 0, 2, -2, -1.49626, 1.64215, 1.07552, 1.07552];
+orbit_list(1,:) = [3.5, -3.5 0, 0, 2.24749, 2.25251, 3.01938, -3.01938, -10.0475, -8.4, -11.2, -12.9, -13.1708, 9.9, 13.1, 7.25251, 12.8809, 9.65251, 9.95251, 9.65251]...
+    + 1i*[0, 0, 2, -2, -1.49626, 1.64215, 0.924778, 0.924778, -1.82478, 1.6, 1.6, 0.8, 0.175222, -1.7, -0.1, -1.02478, -0.724778, 3.77522, -8.22478, 9];
  % Vortex 2 ICs (negative)
-orbit_list(2,:) = [0, 0, 0, 0, 0, 0, 0, 0]...
-    + 1i*[0, 0, -2, 2, 1.57522, -1.42478, -0.924778, -0.924778];
+orbit_list(2,:) = [0, 0, 0, 0, 0, 0, 0, 0, -10, -10, -10, -10, -10, 10, 10, 10, 10, 10, 10, 10]...
+    + 1i*[0, 0, -2, 2, 1.57522, -1.42478, -0.924778, -0.924778, 1.77439, -1.6, -1.6, -0.8, -0.124778, 1.9, 0.1, 0.962687, 0.775222, 8.61893, -3.46464, 4.075];
 
 % REMEMBER that shown surfaces are just slices of full 3D volume
 % So ICs on the shown surface may 4D rotate into u2 =/= 0
@@ -207,6 +207,15 @@ for IC_number = 1:length(orbit_list)
         title("Last plotted: $w_1 =$ "+u1_0+"+("+v1_0+")$i$, with "+"$w_2 =$ "+u2_0+"+("+v2_0+")$i$",...
             'Interpreter','latex','FontSize',fs)
         grid on
+        hold on
+
+        figure (5)
+        plot(Phi_e(:,1), Theta_e(:,1),'.k','MarkerSize',3)
+        title("Poincare Section $(\theta_1 = -\theta_2)$, Energy $E_0 = -3$",'Interpreter','latex')
+        xlabel('$\phi_1$','Interpreter','latex','FontSize',fs)
+        ylabel('$\theta_1 = -\theta_2$','Interpreter','latex','FontSize',fs)
+        xlim([-pi, pi])
+        ylim([-pi, pi])
         hold on
 
         % Export images to folder
