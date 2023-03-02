@@ -256,11 +256,13 @@ function [position,isterminal,direction] = EventsFcn(~,y)
   V = UVwrap(V, [-c*gr, c*gr]);
 
   % Poincare section
-  position = V(1) + V(2); % theta1 = -theta2
+  %position = V(1) + V(2); % theta1 = -theta2
+  position = [V(1) + V(2), U(2)]; % Events function with multiple events (?)
   %position = U(1) - U(2); % phi1 = phi2
   %position = norm(V(1) + V(2)) + norm(U(2)); % theta1 = -theta2 and u2 = 0
   %position = V(1) + V(2) + U(1) + U(2); % Hyper-plane
 
-  isterminal = 0;  % Halt integration 
-  direction = 1;   % 0 = the zero can be approached from either direction
+  isterminal = 0;  % Halt integration
+  % Trying direction = +/- 1 seems to help with overlapping (?)
+  direction = 0;   % 0 = the zero can be approached from either direction
 end
