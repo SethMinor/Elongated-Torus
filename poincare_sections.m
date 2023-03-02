@@ -108,7 +108,7 @@ N = length(q); % keeping track of number of vortices
 
 % ode45 with events function
 t0 = 0;
-tf = 20000;
+tf = 10000;
 timespan = [t0, tf];
 options = odeset('RelTol', 1e-11, 'AbsTol', 1e-11, 'Events', @EventsFcn);
 
@@ -116,11 +116,11 @@ options = odeset('RelTol', 1e-11, 'AbsTol', 1e-11, 'Events', @EventsFcn);
 % 2 x N matrix of complex numbers (maybe N=5 or 6ish)
 %u2_const = 0;
 % Vortex 1 ICs (positive)
-orbit_list(1,:) = [-9.24749, -9.64749, -9.9, -9.98466, -10.1278, -10.6075, -10.7307, -10.8475, -10.8887, -10.9156, -10.8418, -10.7391, -10.917, -10.8915, -10.8065]...
-    + 1i*[-9.25463, -8.62478, -8.3, -8.02478, -7.72478, -6.42478, -5.92478, -5.22478, -4.82478, -4.32478, -2.02478, -5.92478, -4.22478, -2.92478, -1.32478];
- % Vortex 2 ICs (negative)
-orbit_list(2,:) = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]...
-    + 1i*[9.27522, 8.62687, 8.3, 7.97522, 7.67522, 6.37522, 5.87522, 5.1915, 4.77522, 4.27522, 1.97522, 5.77522, 4.07522, 2.87522, 1.27522];
+orbit_list(1,:) = [3.5, -3.5 0, 0, 2.24749, 2.25251, 3.01938, -3.01938, -10.0475, -8.4, -11.2, -12.9, -13.1708, 9.9, 13.1, 7.25251, 12.8809, 9.65251, 9.95251, 9.65251, 11.8594, -11.8594]...
+    + 1i*[0, 0, 2, -2, -1.49626, 1.64215, 0.924778, 0.924778, -1.82478, 1.6, 1.6, 0.8, 0.175222, -1.7, -0.1, -1.02478, -0.724778, 3.77522, -8.22478, 9, -0.024778, -0.024778];
+% Vortex 2 ICs (negative)
+orbit_list(2,:) = [0, 0, 0, 0, 0, 0, 0, 0, -10, -10, -10, -10, -10, 10, 10, 10, 10, 10, 10, 10, 15, -15]...
+    + 1i*[0, 0, -2, 2, 1.57522, -1.42478, -0.924778, -0.924778, 1.77439, -1.6, -1.6, -0.8, -0.124778, 1.9, 0.1, 0.962687, 0.775222, 8.61893, -3.46464, 4.075, -0.024778, -0.024778];
 % REMEMBER that shown surfaces are just slices of full 3D volume
 % So ICs on the shown surface may 4D rotate into u2 =/= 0
 
@@ -261,7 +261,7 @@ function [position,isterminal,direction] = EventsFcn(~,y)
   %position = U(1) - U(2); % phi1 = phi2
   %position = norm(V(1) + V(2)) + norm(U(2)); % theta1 = -theta2 and u2 = 0
   %position = V(1) + V(2) + U(1) + U(2); % Hyper-plane (TRY)
-  position = V(1) - pi*r; % (TRY)
+  position = V(1) - pi*r/2; % (TRY)
 
 %   if (norm(U(2)) < 0.3)
 %       position = V(1)+V(2);
