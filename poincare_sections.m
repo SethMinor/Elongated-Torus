@@ -116,11 +116,11 @@ options = odeset('RelTol', 1e-11, 'AbsTol', 1e-11, 'Events', @EventsFcn);
 % 2 x N matrix of complex numbers (maybe N=5 or 6ish)
 %u2_const = 0;
 % Vortex 1 ICs (positive)
-orbit_list(1,:) = [10.6843, 10.754, 10.4945, 10.2525]...
-    + 1i*[-6.42478, -5.92478, -6.92478, -7.45021];
+orbit_list(1,:) = [-9.24749, -9.64749, -9.9, -9.98466, -10.1278, -10.6075, -10.7307, -10.8475, -10.8887, -10.9156, -10.8418, -10.7391, -10.917, -10.8915, -10.8065]...
+    + 1i*[-9.25463, -8.62478, -8.3, -8.02478, -7.72478, -6.42478, -5.92478, -5.22478, -4.82478, -4.32478, -2.02478, -5.92478, -4.22478, -2.92478, -1.32478];
  % Vortex 2 ICs (negative)
-orbit_list(2,:) = [0,0,0,0]...
-    + 1i*[5.57522, 5.57522, 6.57522, 7.37522];
+orbit_list(2,:) = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]...
+    + 1i*[9.27522, 8.62687, 8.3, 7.97522, 7.67522, 6.37522, 5.87522, 5.1915, 4.77522, 4.27522, 1.97522, 5.77522, 4.07522, 2.87522, 1.27522];
 % REMEMBER that shown surfaces are just slices of full 3D volume
 % So ICs on the shown surface may 4D rotate into u2 =/= 0
 
@@ -145,6 +145,10 @@ for IC_number = 1:length(orbit_list)
     y0 = [u1_0, u2_0, v1_0, v2_0];
     [T,Y,Te,Ye,Ie] = ode15s(@(t,y) vortex_velocity_v2(0,y,0,N,q,r,a,R,c,p,cap,theta,Dginv,gr),...
         timespan, y0, options);
+
+    if isempty(Ye) == 1
+        disp('No intersections found!')
+    end
     
     if isempty(Ye) == 0
         % Plot Poincare section
@@ -251,11 +255,12 @@ function [position,isterminal,direction] = EventsFcn(~,y)
   V = y(3:4);
   V = UVwrap(V, [-c*gr, c*gr]);
 
-  % Toroidal-poloidal cooridnates
-  %Phi = U./c;
   % Poincare section
   position = V(1) + V(2); % theta1 = -theta2
   %position = U(1) - U(2); % phi1 = phi2
+  %position = norm(V(1) + V(2)) + norm(U(2)); % theta1 = -theta2 and u2 = 0
+  %position = V(1) + V(2) + U(1) + U(2); % Hyper-plane
+
   isterminal = 0;  % Halt integration 
-  direction = 0;   % The zero can be approached from either direction
+  direction = 1;   % 0 = the zero can be approached from either direction
 end
