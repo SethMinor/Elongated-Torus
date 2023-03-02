@@ -108,7 +108,7 @@ N = length(q); % keeping track of number of vortices
 
 % ode45 with events function
 t0 = 0;
-tf = 10000;
+tf = 20000;
 timespan = [t0, tf];
 options = odeset('RelTol', 1e-11, 'AbsTol', 1e-11, 'Events', @EventsFcn);
 
@@ -261,7 +261,7 @@ function [position,isterminal,direction] = EventsFcn(~,y)
   %position = U(1) - U(2); % phi1 = phi2
   %position = norm(V(1) + V(2)) + norm(U(2)); % theta1 = -theta2 and u2 = 0
   %position = V(1) + V(2) + U(1) + U(2); % Hyper-plane (TRY)
-  position = V(1) - r*pi/2; % (TRY)
+  position = V(1) - pi*r; % (TRY)
 
 %   if (norm(U(2)) < 0.3)
 %       position = V(1)+V(2);
