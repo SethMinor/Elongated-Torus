@@ -97,7 +97,7 @@ p = exp(-gr); % nome (for periodicity)
 export_bool = false;
 working_dir = 'C:\Users\sminor2848\Downloads\Elongated-Torus-main\Elongated-Torus-main\pics\';
 
-E0 = 0;
+E0 = -3;
 plot_counter = 0;
 
 % Vortex charges
@@ -108,22 +108,21 @@ N = length(q); % keeping track of number of vortices
 
 % ode45 with events function
 t0 = 0;
-tf = 10000;
+tf = 5000;
 timespan = [t0, tf];
 options = odeset('RelTol', 1e-11, 'AbsTol', 1e-11, 'Events', @EventsFcn);
 
 % Create list of isosurface ICs (u2 = constant)
 % 2 x N matrix of complex numbers (maybe N=5 or 6ish)
-%u2_const = 0;
 % Vortex 1 ICs (positive)
 orbit_list(1,:) = [3.5, -3.5 0, 0, 2.24749, 2.25251, 3.01938, -3.01938, -10.0475, -8.4, -11.2, -12.9, -13.1708, 9.9, 13.1, 7.25251, 12.8809, 9.65251, 9.95251, 9.65251, 11.8594, -11.8594]...
     + 1i*[0, 0, 2, -2, -1.49626, 1.64215, 0.924778, 0.924778, -1.82478, 1.6, 1.6, 0.8, 0.175222, -1.7, -0.1, -1.02478, -0.724778, 3.77522, -8.22478, 9, -0.024778, -0.024778];
 % Vortex 2 ICs (negative)
 orbit_list(2,:) = [0, 0, 0, 0, 0, 0, 0, 0, -10, -10, -10, -10, -10, 10, 10, 10, 10, 10, 10, 10, 15, -15]...
     + 1i*[0, 0, -2, 2, 1.57522, -1.42478, -0.924778, -0.924778, 1.77439, -1.6, -1.6, -0.8, -0.124778, 1.9, 0.1, 0.962687, 0.775222, 8.61893, -3.46464, 4.075, -0.024778, -0.024778];
+
 % REMEMBER that shown surfaces are just slices of full 3D volume
 % So ICs on the shown surface may 4D rotate into u2 =/= 0
-
 % Periodic orbits for u1=u2, v1=-v2
 
 for IC_number = 1:length(orbit_list)
@@ -147,7 +146,7 @@ for IC_number = 1:length(orbit_list)
         timespan, y0, options);
 
     if isempty(Ye) == 1
-        disp('No intersections found!')
+        fprintf('Orbit %.f, no intersections found!\n', plot_counter)
     end
     
     if isempty(Ye) == 0
@@ -158,14 +157,20 @@ for IC_number = 1:length(orbit_list)
         
         Ve = Ye(:,(1+N):2*N); % v-coords
         Ve = UVwrap(Ve, [c*gl, c*gr]);
+
+        % Check if theta1 
         
         % Conversion to toroidal-poloidal coordinates
         Phi_e = Ue./c;
         Theta_e = [theta(Ve(:,1)), theta(Ve(:,2))];
+
+        if (max(Phi_e(:,1)-2.051) > 0.2)
+            fprintf('Orbit %.f, theta1 is pi!\n', plot_counter)
+        end
         
         % Poincare section
         figure (2)
-        sgtitle("Poincare Section $(\theta_1 = -\theta_2)$, Energy $E_0 =$"+E0,'Interpreter','latex')
+        sgtitle("Poincare Section $(\theta_1 \approx 2)$, Energy $E_0 =$"+E0,'Interpreter','latex')
         subplot (2,2,1)
         plot(Phi_e(:,1), Phi_e(:,2),'.','MarkerSize',3)
         xlabel('$\phi_1$','Interpreter','latex','FontSize',fs)
@@ -187,24 +192,25 @@ for IC_number = 1:length(orbit_list)
         subplot (2,2,3)
         plot(Phi_e(:,1), Theta_e(:,1),'.','MarkerSize',3)
         xlabel('$\phi_1$','Interpreter','latex','FontSize',fs)
-        ylabel('$\theta_1 = -\theta_2$','Interpreter','latex','FontSize',fs)
+        ylabel('$\theta_1 \approx 2$','Interpreter','latex','FontSize',fs)
         xlim([-pi, pi])
         ylim([-pi, pi])
+        grid on
         hold on
 
         subplot (2,2,4)
         plot(Phi_e(:,2), Theta_e(:,2),'.','MarkerSize',3)
         xlabel('$\phi_2$','Interpreter','latex','FontSize',fs)
-        ylabel('$\theta_2 = -\theta_1$','Interpreter','latex','FontSize',fs)
+        ylabel('$\theta_2$','Interpreter','latex','FontSize',fs)
         xlim([-pi, pi])
-        ylim([-pi, pi])
+        ylim([-1.5, 2.5])
         hold on
 
         figure (3)
-        plot3(Phi_e(:,1), Phi_e(:,2), Theta_e(:,1),'.','MarkerSize',3)
+        plot3(Phi_e(:,1), Phi_e(:,2), Theta_e(:,2),'.','MarkerSize',3)
         xlabel('$\phi_1$','Interpreter','latex','FontSize',fs)
         ylabel('$\phi_2$','Interpreter','latex','FontSize',fs)
-        zlabel('$\theta_1 = -\theta_2$','Interpreter','latex','FontSize',fs)
+        zlabel('$\theta_2$','Interpreter','latex','FontSize',fs)
         xlim([-pi, pi])
         ylim([-pi, pi])
         zlim([-pi, pi])
@@ -214,12 +220,12 @@ for IC_number = 1:length(orbit_list)
         hold on
 
         figure (5)
-        plot(Phi_e(:,1), Theta_e(:,1),'.','MarkerSize',4)
-        title("Poincare Section $(\theta_1 = -\theta_2)$, Energy $E_0=$"+E0,'Interpreter','latex')
-        xlabel('$\phi_1$','Interpreter','latex','FontSize',fs)
-        ylabel('$\theta_1 = -\theta_2$','Interpreter','latex','FontSize',fs)
+        plot(Phi_e(:,2), Theta_e(:,2),'.','MarkerSize',4)
+        title("Poincare Section $(\theta_1 \approx 2)$, Energy $E_0=$"+E0,'Interpreter','latex')
+        xlabel('$\phi_2$','Interpreter','latex','FontSize',fs)
+        ylabel('$\theta_2$','Interpreter','latex','FontSize',fs)
         xlim([-pi, pi])
-        ylim([-pi, pi])
+        ylim([-1.5, 2.5])
         hold on
 
         % Export images to folder
@@ -257,17 +263,9 @@ function [position,isterminal,direction] = EventsFcn(~,y)
 
   % Poincare section
   %position = V(1) + V(2); % theta1 = -theta2
-  %position = [V(1) + V(2), U(2)]; % Events function with multiple events (?)
   %position = U(1) - U(2); % phi1 = phi2
-  %position = norm(V(1) + V(2)) + norm(U(2)); % theta1 = -theta2 and u2 = 0
   %position = V(1) + V(2) + U(1) + U(2); % Hyper-plane (TRY)
-  position = V(1) - pi*r/2; % (TRY)
-
-%   if (norm(U(2)) < 0.3)
-%       position = V(1)+V(2);
-%   else
-%       position = 1;
-%   end
+  position = V(1) - pi*r/2; %- c*gr/2; % (TRY)
 
   isterminal = 0;  % Halt integration
   % Trying direction = +/- 1 seems to help with overlapping (?)
