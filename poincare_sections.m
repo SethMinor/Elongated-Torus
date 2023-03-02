@@ -97,6 +97,7 @@ p = exp(-gr); % nome (for periodicity)
 export_bool = false;
 working_dir = 'C:\Users\sminor2848\Downloads\Elongated-Torus-main\Elongated-Torus-main\pics\';
 
+E0 = 0;
 plot_counter = 0;
 
 % Vortex charges
@@ -107,7 +108,7 @@ N = length(q); % keeping track of number of vortices
 
 % ode45 with events function
 t0 = 0;
-tf = 12000;
+tf = 10000;
 timespan = [t0, tf];
 options = odeset('RelTol', 1e-11, 'AbsTol', 1e-11, 'Events', @EventsFcn);
 
@@ -115,12 +116,11 @@ options = odeset('RelTol', 1e-11, 'AbsTol', 1e-11, 'Events', @EventsFcn);
 % 2 x N matrix of complex numbers (maybe N=5 or 6ish)
 %u2_const = 0;
 % Vortex 1 ICs (positive)
-orbit_list(1,:) = [3.5, -3.5 0, 0, 2.24749, 2.25251, 3.01938, -3.01938, -10.0475, -8.4, -11.2, -12.9, -13.1708, 9.9, 13.1, 7.25251, 12.8809, 9.65251, 9.95251, 9.65251, -6.4184, 6.4184, -6, 0]...
-    + 1i*[0, 0, 2, -2, -1.49626, 1.64215, 0.924778, 0.924778, -1.82478, 1.6, 1.6, 0.8, 0.175222, -1.7, -0.1, -1.02478, -0.724778, 3.77522, -8.22478, 9, -0.024778, -0.024778, -1, -1];
+orbit_list(1,:) = [10.6843, 10.754, 10.4945, 10.2525]...
+    + 1i*[-6.42478, -5.92478, -6.92478, -7.45021];
  % Vortex 2 ICs (negative)
-orbit_list(2,:) = [0, 0, 0, 0, 0, 0, 0, 0, -10, -10, -10, -10, -10, 10, 10, 10, 10, 10, 10, 10, -3, 3, -3, -3]...
-    + 1i*[0, 0, -2, 2, 1.57522, -1.42478, -0.924778, -0.924778, 1.77439, -1.6, -1.6, -0.8, -0.124778, 1.9, 0.1, 0.962687, 0.775222, 8.61893, -3.46464, 4.075, -0.024778, -0.024778, 1, 1];
-
+orbit_list(2,:) = [0,0,0,0]...
+    + 1i*[5.57522, 5.57522, 6.57522, 7.37522];
 % REMEMBER that shown surfaces are just slices of full 3D volume
 % So ICs on the shown surface may 4D rotate into u2 =/= 0
 
@@ -161,7 +161,7 @@ for IC_number = 1:length(orbit_list)
         
         % Poincare section
         figure (2)
-        sgtitle("Poincare Section $(\theta_1 = -\theta_2)$, Energy $E_0 = -3$",'Interpreter','latex')
+        sgtitle("Poincare Section $(\theta_1 = -\theta_2)$, Energy $E_0 =$"+E0,'Interpreter','latex')
         subplot (2,2,1)
         plot(Phi_e(:,1), Phi_e(:,2),'.','MarkerSize',3)
         xlabel('$\phi_1$','Interpreter','latex','FontSize',fs)
@@ -210,8 +210,8 @@ for IC_number = 1:length(orbit_list)
         hold on
 
         figure (5)
-        plot(Phi_e(:,1), Theta_e(:,1),'.k','MarkerSize',2)
-        title("Poincare Section $(\theta_1 = -\theta_2)$, Energy $E_0 = -3$",'Interpreter','latex')
+        plot(Phi_e(:,1), Theta_e(:,1),'.','MarkerSize',4)
+        title("Poincare Section $(\theta_1 = -\theta_2)$, Energy $E_0=$"+E0,'Interpreter','latex')
         xlabel('$\phi_1$','Interpreter','latex','FontSize',fs)
         ylabel('$\theta_1 = -\theta_2$','Interpreter','latex','FontSize',fs)
         xlim([-pi, pi])
@@ -226,6 +226,8 @@ for IC_number = 1:length(orbit_list)
     end
     % Finito
 end
+
+hold off
 
 %% Function definitions
 % RHS of nonlinear isothermal coords ODE
@@ -242,11 +244,13 @@ function [position,isterminal,direction] = EventsFcn(~,y)
   r = 3;
   c = sqrt(R^2-r^2);
   gr = 1.0345;
+
   % Isothermal coordinates
   U = y(1:2);
   U = UVwrap(U, [-pi*c, pi*c]);
   V = y(3:4);
   V = UVwrap(V, [-c*gr, c*gr]);
+
   % Toroidal-poloidal cooridnates
   %Phi = U./c;
   % Poincare section
