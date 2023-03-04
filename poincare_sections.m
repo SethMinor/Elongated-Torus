@@ -265,7 +265,8 @@ function [position,isterminal,direction] = EventsFcn(~,y)
   %position = V(1) + V(2); % theta1 = -theta2
   %position = U(1) - U(2); % phi1 = phi2
   %position = V(1) + V(2) + U(1) + U(2); % Hyper-plane (TRY)
-  position = V(1) - pi*r/2; %- c*gr/2; % (TRY)
+  %position = V(1) - pi*r/2; %- c*gr/2; % (TRY)
+  position = sin((U(1) + U(2))/3); % Implicit line in R^3
 
   isterminal = 0;  % Halt integration
   % Trying direction = +/- 1 seems to help with overlapping (?)
