@@ -108,19 +108,23 @@ N = length(q); % keeping track of number of vortices
 
 % ode45 with events function
 t0 = 0;
-tf = 20000;
+tf = 25000;
 timespan = [t0, tf];
 options = odeset('RelTol', 1e-11, 'AbsTol', 1e-11, 'Events', @EventsFcn);
 
 % Create list of isosurface ICs (u2 = constant)
 % 2 x N matrix of complex numbers (maybe N=5 or 6ish)
 % Vortex 1 ICs (positive)
-orbit_list(1,:) = [10.4234, 11.0726, 12.8889, 13.9306, 10.9417, 10.8026, 11.5151, 11.7525, 13.2525, 11.8008, 10.8754, 10.4439]...
-    + 1i*[-7.92478, -8.22478, -8.52478, -8.22478, -1.62478, -1.32478, -1.62478, -1.88438, 5.23646, 4.67522, 4.97522, 4.97522];
+orbit_list(1,:) = [10.4234, 11.0726, 12.8889, 13.9306, 10.9417, 10.8026, 11.5151, 11.7525, 13.2525, 11.8008, 10.8754, 10.4439,...
+	-13.5463, -11.0475, -10.4475, -9.7763, -11.2447, -11.1615, -10.8167, -10.8606, -10.6395, -10.8451, -12.1282, -13.6686]...
+    + 1i*[-7.92478, -8.22478, -8.52478, -8.22478, -1.62478, -1.32478, -1.62478, -1.88438, 5.23646, 4.67522, 4.97522, 4.97522,...
+	7.67522, 7.97522, 7.91171, 8.27522, -0.124778, 1.67522, 0.475222, 1.67522, -6.12478, -7.02478, -5.82478, -6.72478];
 
 % Vortex 2 ICs (negative)
-orbit_list(2,:) = [0,0,0, 0,0,0, 0,0,0, 0,0,0]...
-    + 1i*[4.97522, -0.724778, -4.62478, -8.82478, 6.77522, 1.07552, -3.72478, -8.52478, 8.27522, 2.27522, -3.12478, -8.22478];
+orbit_list(2,:) = [0,0,0, 0,0,0, 0,0,0, 0,0,0,...
+	0,0,0, 0,0,0, 0,0,0, 0,0,0]...
+    + 1i*[4.97522, -0.724778, -4.62478, -8.82478, 6.77522, 1.07552, -3.72478, -8.52478, 8.27522, 2.27522, -3.12478, -8.22478,...
+	6.47522, 0.527643, -4.32478, -8.52478, 6.47522, 1.97522, -1.32478, -7.32478, 6.47522, 0.775222, -2.82478, -8.22478];
 
 % REMEMBER that shown surfaces are just slices of full 3D volume
 % So ICs on the shown surface may 4D rotate into u2 =/= 0
@@ -167,62 +171,63 @@ for IC_number = 1:length(orbit_list)
         
         % Poincare section
         figure (2)
-        sgtitle("Poincare Section $(\phi_2 = 0)$, Energy $E_0 =$"+E0,'Interpreter','latex')
+        sgtitle("Poincare Section $(u_2 = 0)$, Energy $E_0 =$"+E0,'Interpreter','latex')
         subplot (2,2,1)
         plot(Ue(:,1), Ue(:,2),'.','MarkerSize',3)
-        xlabel('$\phi_1$','Interpreter','latex','FontSize',fs)
-        ylabel('$\phi_2 = 0$','Interpreter','latex','FontSize',fs)
-        %xlim([-pi, pi])
-        %ylim([-pi, pi])
+        xlabel('$u_1$','Interpreter','latex','FontSize',fs)
+        ylabel('$u_2 = 0$','Interpreter','latex','FontSize',fs)
+        xlim([-pi*c, pi*c])
+        ylim([-pi*c, pi*c])
         grid on
         hold on
         
         subplot (2,2,2)
         plot(Ve(:,1), Ve(:,2),'.','MarkerSize',3)
-        xlabel('$\theta_1$','Interpreter','latex','FontSize',fs)
-        ylabel('$\theta_2$','Interpreter','latex','FontSize',fs)
-        %xlim([-pi, pi])
-        %ylim([-pi, pi])
+        xlabel('$v_1$','Interpreter','latex','FontSize',fs)
+        ylabel('$v_2$','Interpreter','latex','FontSize',fs)
+        xlim([c*gl, c*gr])
+        ylim([c*gl, c*gr])
         grid on
         hold on
 
         subplot (2,2,3)
         plot(Ue(:,1), Ve(:,1),'.','MarkerSize',3)
-        xlabel('$\phi_1$','Interpreter','latex','FontSize',fs)
-        ylabel('$\theta_1 \approx 2$','Interpreter','latex','FontSize',fs)
-        %xlim([-pi, pi])
-        %ylim([-pi, pi])
+        xlabel('$u_1$','Interpreter','latex','FontSize',fs)
+        ylabel('$v_1$','Interpreter','latex','FontSize',fs)
+        xlim([-pi*c, pi*c])
+        ylim([c*gl, c*gr])
         grid on
         hold on
 
         subplot (2,2,4)
         plot(Ue(:,2), Ve(:,2),'.','MarkerSize',3)
-        xlabel('$\phi_2 = 0$','Interpreter','latex','FontSize',fs)
-        ylabel('$\theta_2$','Interpreter','latex','FontSize',fs)
-        %xlim([-pi, pi])
-        %ylim([-pi, pi])
+        xlabel('$u_2 = 0$','Interpreter','latex','FontSize',fs)
+        ylabel('$v_2$','Interpreter','latex','FontSize',fs)
+        xlim([-pi*c, pi*c])
+        ylim([c*gl, c*gr])
+        grid on
         hold on
 
         figure (3)
         plot3(Ue(:,1), Ve(:,1), Ve(:,2),'.','MarkerSize',3)
-        xlabel('$\theta_1$','Interpreter','latex','FontSize',fs)
-        ylabel('$\theta_2$','Interpreter','latex','FontSize',fs)
-        zlabel('$\phi_1$','Interpreter','latex','FontSize',fs)
-        %xlim([-pi, pi])
-        %ylim([-pi, pi])
-        %zlim([-pi, pi])
+        xlabel('$v_1$','Interpreter','latex','FontSize',fs)
+        ylabel('$v_2$','Interpreter','latex','FontSize',fs)
+        zlabel('$u_1$','Interpreter','latex','FontSize',fs)
+        xlim([-pi*c, pi*c])
+        ylim([c*gl, c*gr])
+        zlim([c*gl, c*gr])
         title("Last plotted: $w_1 =$ "+u1_0+"+("+v1_0+")$i$, with "+"$w_2 =$ "+u2_0+"+("+v2_0+")$i$",...
             'Interpreter','latex','FontSize',fs)
         grid on
         hold on
 
         figure (5)
-        plot(Ue(:,1), Ve(:,1),'.','MarkerSize',4)
-        title("Poincare Section $(\phi_2 = 0)$, Energy $E_0=$"+E0,'Interpreter','latex')
-        xlabel('$\phi_2$','Interpreter','latex','FontSize',fs)
-        ylabel('$\theta_2$','Interpreter','latex','FontSize',fs)
-        %xlim([-pi, pi])
-        %ylim([-pi, pi])
+        plot(Ve(:,1), Ve(:,2),'.','MarkerSize',4)
+        title("Poincare Section $(u_2 = 0)$, Energy $E_0=$"+E0,'Interpreter','latex')
+        xlabel('$v_1$','Interpreter','latex','FontSize',fs)
+        ylabel('$v_2$','Interpreter','latex','FontSize',fs)
+        xlim([c*gl, c*gr])
+        ylim([c*gl, c*gr])
         hold on
 
         % Export images to folder
