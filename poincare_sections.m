@@ -97,7 +97,7 @@ p = exp(-gr); % nome (for periodicity)
 export_bool = false;
 working_dir = 'C:\Users\sminor2848\Downloads\Elongated-Torus-main\Elongated-Torus-main\pics\';
 
-E0 = -3;
+E0 = 0;
 plot_counter = 0;
 
 % Vortex charges
@@ -115,11 +115,12 @@ options = odeset('RelTol', 1e-11, 'AbsTol', 1e-11, 'Events', @EventsFcn);
 % Create list of isosurface ICs (u2 = constant)
 % 2 x N matrix of complex numbers (maybe N=5 or 6ish)
 % Vortex 1 ICs (positive)
-orbit_list(1,:) = [3.5, -3.5, 2.25251, -8.4, -12.9, -13.1708, 13.1, 7.25251, 12.8809, -11.8594]...
-    + 1i*[0, 0, 1.64215, 1.6, 0.8, 0.175222, -0.1, -1.02478, -0.724778, -0.024778];
+orbit_list(1,:) = [10.4234, 11.0726, 12.8889, 13.9306, 10.9417, 10.8026, 11.5151, 11.7525, 13.2525, 11.8008, 10.8754, 10.4439]...
+    + 1i*[-7.92478, -8.22478, -8.52478, -8.22478, -1.62478, -1.32478, -1.62478, -1.88438, 5.23646, 4.67522, 4.97522, 4.97522];
+
 % Vortex 2 ICs (negative)
-orbit_list(2,:) = [0, 0, 0, -10, -10, -10, 10, 10, 10, -15]...
-    + 1i*[0, 0, -1.42478, -1.6, -0.8, -0.124778, 0.1, 0.962687, 0.775222, -0.024778];
+orbit_list(2,:) = [0,0,0, 0,0,0, 0,0,0, 0,0,0]...
+    + 1i*[4.97522, -0.724778, -4.62478, -8.82478, 6.77522, 1.07552, -3.72478, -8.52478, 8.27522, 2.27522, -3.12478, -8.22478];
 
 % REMEMBER that shown surfaces are just slices of full 3D volume
 % So ICs on the shown surface may 4D rotate into u2 =/= 0
@@ -163,69 +164,65 @@ for IC_number = 1:length(orbit_list)
         % Conversion to toroidal-poloidal coordinates
         Phi_e = Ue./c;
         Theta_e = [theta(Ve(:,1)), theta(Ve(:,2))];
-
-        if (max(Phi_e(:,1)-2.051) > 0.2)
-            fprintf('Orbit %.f, theta1 is pi!\n', plot_counter)
-        end
         
         % Poincare section
         figure (2)
-        sgtitle("Poincare Section $(\theta_1 \approx 2)$, Energy $E_0 =$"+E0,'Interpreter','latex')
+        sgtitle("Poincare Section $(\phi_2 = 0)$, Energy $E_0 =$"+E0,'Interpreter','latex')
         subplot (2,2,1)
-        plot(Phi_e(:,1), Phi_e(:,2),'.','MarkerSize',3)
+        plot(Ue(:,1), Ue(:,2),'.','MarkerSize',3)
         xlabel('$\phi_1$','Interpreter','latex','FontSize',fs)
-        ylabel('$\phi_2$','Interpreter','latex','FontSize',fs)
-        xlim([-pi, pi])
-        ylim([-pi, pi])
+        ylabel('$\phi_2 = 0$','Interpreter','latex','FontSize',fs)
+        %xlim([-pi, pi])
+        %ylim([-pi, pi])
         grid on
         hold on
         
         subplot (2,2,2)
-        plot(Theta_e(:,1), Theta_e(:,2),'.','MarkerSize',3)
+        plot(Ve(:,1), Ve(:,2),'.','MarkerSize',3)
         xlabel('$\theta_1$','Interpreter','latex','FontSize',fs)
         ylabel('$\theta_2$','Interpreter','latex','FontSize',fs)
-        xlim([-pi, pi])
-        ylim([-pi, pi])
+        %xlim([-pi, pi])
+        %ylim([-pi, pi])
         grid on
         hold on
 
         subplot (2,2,3)
-        plot(Phi_e(:,1), Theta_e(:,1),'.','MarkerSize',3)
+        plot(Ue(:,1), Ve(:,1),'.','MarkerSize',3)
         xlabel('$\phi_1$','Interpreter','latex','FontSize',fs)
         ylabel('$\theta_1 \approx 2$','Interpreter','latex','FontSize',fs)
-        xlim([-pi, pi])
-        ylim([-pi, pi])
+        %xlim([-pi, pi])
+        %ylim([-pi, pi])
         grid on
         hold on
 
         subplot (2,2,4)
-        plot(Phi_e(:,2), Theta_e(:,2),'.','MarkerSize',3)
-        xlabel('$\phi_2$','Interpreter','latex','FontSize',fs)
+        plot(Ue(:,2), Ve(:,2),'.','MarkerSize',3)
+        xlabel('$\phi_2 = 0$','Interpreter','latex','FontSize',fs)
         ylabel('$\theta_2$','Interpreter','latex','FontSize',fs)
-        xlim([-pi, pi])
-        ylim([-pi, pi])
+        %xlim([-pi, pi])
+        %ylim([-pi, pi])
         hold on
 
         figure (3)
-        plot3(Phi_e(:,1), Phi_e(:,2), Theta_e(:,2),'.','MarkerSize',3)
-        xlabel('$\phi_1$','Interpreter','latex','FontSize',fs)
-        ylabel('$\phi_2$','Interpreter','latex','FontSize',fs)
-        zlabel('$\theta_2$','Interpreter','latex','FontSize',fs)
-        xlim([-pi, pi])
-        ylim([-pi, pi])
-        zlim([-pi, pi])
+        plot3(Ue(:,1), Ve(:,1), Ve(:,2),'.','MarkerSize',3)
+        xlabel('$\theta_1$','Interpreter','latex','FontSize',fs)
+        ylabel('$\theta_2$','Interpreter','latex','FontSize',fs)
+        zlabel('$\phi_1$','Interpreter','latex','FontSize',fs)
+        %xlim([-pi, pi])
+        %ylim([-pi, pi])
+        %zlim([-pi, pi])
         title("Last plotted: $w_1 =$ "+u1_0+"+("+v1_0+")$i$, with "+"$w_2 =$ "+u2_0+"+("+v2_0+")$i$",...
             'Interpreter','latex','FontSize',fs)
         grid on
         hold on
 
         figure (5)
-        plot(Phi_e(:,2), Theta_e(:,2),'.','MarkerSize',4)
-        title("Poincare Section $(\theta_1 \approx 2)$, Energy $E_0=$"+E0,'Interpreter','latex')
+        plot(Ue(:,1), Ve(:,1),'.','MarkerSize',4)
+        title("Poincare Section $(\phi_2 = 0)$, Energy $E_0=$"+E0,'Interpreter','latex')
         xlabel('$\phi_2$','Interpreter','latex','FontSize',fs)
         ylabel('$\theta_2$','Interpreter','latex','FontSize',fs)
-        xlim([-pi, pi])
-        ylim([-pi, pi])
+        %xlim([-pi, pi])
+        %ylim([-pi, pi])
         hold on
 
         % Export images to folder
@@ -266,7 +263,9 @@ function [position,isterminal,direction] = EventsFcn(~,y)
   %position = U(1) - U(2); % phi1 = phi2
   %position = V(1) + V(2) + U(1) + U(2); % Hyper-plane (TRY)
   %position = V(1) - pi*r/2; %- c*gr/2; % (TRY)
-  position = V(1) + V(2) + sin(V(1) + V(2)); % Implicit line in R^3
+  %position = V(1) + V(2) + sin(V(1) + V(2)); % Implicit line in R^3
+  %position = V(2); % Looks rad but has overlap
+  position = U(2);
 
   isterminal = 0;  % Halt integration
   % Trying direction = +/- 1 seems to help with overlapping (?)
