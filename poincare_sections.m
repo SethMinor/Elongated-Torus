@@ -97,7 +97,7 @@ p = exp(-gr); % nome (for periodicity)
 export_bool = false;
 working_dir = 'C:\Users\sminor2848\Downloads\Elongated-Torus-main\Elongated-Torus-main\pics\';
 
-E0 = 0;
+E0 = -3;
 plot_counter = 0;
 
 % Vortex charges
@@ -115,16 +115,18 @@ options = odeset('RelTol', 1e-11, 'AbsTol', 1e-11, 'Events', @EventsFcn);
 % Create list of isosurface ICs (u2 = constant)
 % 2 x N matrix of complex numbers (maybe N=5 or 6ish)
 % Vortex 1 ICs (positive)
-orbit_list(1,:) = [10.4234, 11.0726, 12.8889, 13.9306, 10.9417, 10.8026, 11.5151, 11.7525, 13.2525, 11.8008, 10.8754, 10.4439,...
-	-13.5463, -11.0475, -10.4475, -9.7763, -11.2447, -11.1615, -10.8167, -10.8606, -10.6395, -10.8451, -12.1282, -13.6686]...
-    + 1i*[-7.92478, -8.22478, -8.52478, -8.22478, -1.62478, -1.32478, -1.62478, -1.88438, 5.23646, 4.67522, 4.97522, 4.97522,...
-	7.67522, 7.97522, 7.91171, 8.27522, -0.124778, 1.67522, 0.475222, 1.67522, -6.12478, -7.02478, -5.82478, -6.72478];
+orbit_list(1,:) = [0.352508, 0.352508, 2.45251, 1.25251, -0.247492, 0.952508, -0.547492, 0.952508,...
+	1.25251, 0.352508, -5.32283, -2.67955, -5.23302, 5.32368, 2.45251, 5.19891,...
+	3.35251, 2.91812, 2.45251, 0.0525085, 0.0525085, -0.547492, -2.64749, -3.12493, -3.84749]...
+    + 1i*[8.59535, 2.57522, -4.17478, 3.17522, -1.77181, -8.82492, -2.02549, -3.92933,...
+	2.87522, 2.41657, 7.37522, -2.52478, -8.22478, 7.37522, -2.52478, -7.62478,...
+	4.5782, -0.124778, -3.32573, 5.72388, 1.26486, -1.92478, 7.07522, 0.475222, -3.23495];
 
 % Vortex 2 ICs (negative)
-orbit_list(2,:) = [0,0,0, 0,0,0, 0,0,0, 0,0,0,...
-	0,0,0, 0,0,0, 0,0,0, 0,0,0]...
-    + 1i*[4.97522, -0.724778, -4.62478, -8.82478, 6.77522, 1.07552, -3.72478, -8.52478, 8.27522, 2.27522, -3.12478, -8.22478,...
-	6.47522, 0.527643, -4.32478, -8.52478, 6.47522, 1.97522, -1.32478, -7.32478, 6.47522, 0.775222, -2.82478, -8.22478];
+orbit_list(2,:) = [0,0,0, 0,0,0, 0,0, 0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0]...
+    + 1i*[3.17522, -1.4753, -9.12478, 8.39291, 2.27522, -3.42478, 1.97522, 0.175222,...
+	-0.955982, -1.62478, 8.27522, 0.175222, -7.02478, 8.27522, 0.425142, -6.72478,...
+	1.97522, -2.52478, -7.92478, 1.07522, -2.82478, -6.84328, 2.8801, -1.32478, -5.82478];
 
 % REMEMBER that shown surfaces are just slices of full 3D volume
 % So ICs on the shown surface may 4D rotate into u2 =/= 0
@@ -176,8 +178,8 @@ for IC_number = 1:length(orbit_list)
         plot(Ue(:,1), Ue(:,2),'.','MarkerSize',3)
         xlabel('$u_1$','Interpreter','latex','FontSize',fs)
         ylabel('$u_2 = 0$','Interpreter','latex','FontSize',fs)
-        xlim([-pi*c, pi*c])
-        ylim([-pi*c, pi*c])
+        xlim([-pi*c/2, pi*c/2])
+        ylim([-pi*c/2, pi*c/2])
         grid on
         hold on
         
@@ -194,7 +196,7 @@ for IC_number = 1:length(orbit_list)
         plot(Ue(:,1), Ve(:,1),'.','MarkerSize',3)
         xlabel('$u_1$','Interpreter','latex','FontSize',fs)
         ylabel('$v_1$','Interpreter','latex','FontSize',fs)
-        xlim([-pi*c, pi*c])
+        xlim([-pi*c/2, pi*c/2])
         ylim([c*gl, c*gr])
         grid on
         hold on
@@ -203,7 +205,7 @@ for IC_number = 1:length(orbit_list)
         plot(Ue(:,2), Ve(:,2),'.','MarkerSize',3)
         xlabel('$u_2 = 0$','Interpreter','latex','FontSize',fs)
         ylabel('$v_2$','Interpreter','latex','FontSize',fs)
-        xlim([-pi*c, pi*c])
+        xlim([-pi*c/2, pi*c/2])
         ylim([c*gl, c*gr])
         grid on
         hold on
@@ -222,11 +224,11 @@ for IC_number = 1:length(orbit_list)
         hold on
 
         figure (5)
-        plot(Ve(:,1), Ve(:,2),'.','MarkerSize',4)
+        plot(Ue(:,1), Ve(:,1),'.','MarkerSize',6)
         title("Poincare Section $(u_2 = 0)$, Energy $E_0=$"+E0,'Interpreter','latex')
-        xlabel('$v_1$','Interpreter','latex','FontSize',fs)
-        ylabel('$v_2$','Interpreter','latex','FontSize',fs)
-        xlim([c*gl, c*gr])
+        xlabel('$u_1$','Interpreter','latex','FontSize',fs)
+        ylabel('$v_1$','Interpreter','latex','FontSize',fs)
+        xlim([-c*pi/2, c*pi/2])
         ylim([c*gl, c*gr])
         hold on
 
