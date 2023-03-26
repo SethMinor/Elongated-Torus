@@ -5,7 +5,7 @@ function J = myjacobian(func,x)
     N = length(x);
 
     %F_at_x = feval(func,x);
-    epsilon = 1E-4;
+    epsilon = 1E-8;
 
     % Compute numerical derivative
     xperturb = x;
