@@ -124,7 +124,7 @@ for delta_a = 0:da:2 % (a will go from a0 to a0 - last number)
         t0 = 0;
         tf = 500;
         timespan = [t0, tf];
-        options = odeset('RelTol', 1e-9, 'AbsTol', 1e-9);
+        options = odeset('RelTol', 1e-11, 'AbsTol', 1e-11);
         
         % Define the RHS
         F =@(W) vortex_velocity_v2(0,[W(1), W(2), W(3), W(4)],0,N,q,r,a,...
