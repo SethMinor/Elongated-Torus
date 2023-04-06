@@ -4,6 +4,9 @@ clear, clc;%, clf;
 % Font size, for plotting
 fs = 16;
 
+% Compute Lyapunov exponents as well?
+Lyap_bool = false;
+
 % Initial parameters
 a = 13;
 a0 = a;
@@ -26,7 +29,7 @@ u2constant = -30;
 da = 0.05;
 counter = 1;
 
-for delta_a = 0:da:1
+for delta_a = 0:da:2 % (a will go from a0 to a0 - last number)
     % New semi-major axis a
     a = a0 - delta_a;
 
@@ -66,6 +69,10 @@ for delta_a = 0:da:1
     ginv = fit(imag(phi_raw), theta_raw, 'cubicinterp');
     phi =@(u) u/c;
     theta =@(v) ginv(-UVwrap(v, [-c*gr, c*gr])/c);
+
+    % Define the derivative of g_inverse
+    D2 = differentiate(ginv, imag(phi_raw));
+    Dginv = fit(imag(phi_raw), D2, 'cubicinterp');
     
     % --- Other parameters ---
     % Gamma quantity
@@ -93,6 +100,60 @@ for delta_a = 0:da:1
 
     % Update list of (a,v1,v2)
     v_list(counter,1:3) = [a,v_star];
+
+    % Compute Lyapunov exponents of branch using continuous QR?
+    if Lyap_bool == true
+        % --- Initial conditions for vortices ---
+        % Initial vortex positions in [-pi*c,pi*c]x[cgl,cgr]
+        w1_0 = (u2constant) + 1i*(v_star(1)); % positive vortex
+        w2_0 = (u2constant) + 1i*(v_star(2)); % negative vortex
+        
+        % Vortex charges
+        q = [1, -1];   % vector of vortex charges
+        N = length(q); % keeping track of number of vortices
+        
+        % Real and imaginary parts of isothermal coords
+        u1_0 = real(w1_0);
+        v1_0 = imag(w1_0);
+        
+        u2_0 = real(w2_0);
+        v2_0 = imag(w2_0);
+
+        % Integrate the equations of motion
+        % Set total time and tolerances
+        t0 = 0;
+        tf = 500;
+        timespan = [t0, tf];
+        options = odeset('RelTol', 1e-9, 'AbsTol', 1e-9);
+        
+        % Define the RHS
+        F =@(W) vortex_velocity_v2(0,[W(1), W(2), W(3), W(4)],0,N,q,r,a,...
+            R,c,p,cap,theta,Dginv,gr);
+        
+        % Numerical integration using ode45
+        y0 = [u1_0, u2_0, v1_0, v2_0]'; % ODE ICs
+        Q0 = eye(2*N); % Lyapunov, Q ICs
+        p0 = ones(2*N,1); % Lyapunov, rho_i ICs
+        Y0 = [y0; reshape(Q0,[(2*N)^2,1]); p0];
+        
+        [t,y] = ode45('vortex_velocity_lyapunov',timespan, Y0, options,...
+            N, q, r, a, R, c, p, cap, theta, Dginv, gr, F);
+
+        % Roll through 'y_n' solution and store {rho_i} values
+        % [rho_1, ..., rho_4] list = y(:, 1 + 2N + (2N)^2 : end)
+        rho_list = y(:, 1+2*N+(2*N)^2 : end);
+        
+        % Compute the full spectrum
+        N_lyapunov = 100; % number to back-average
+        Lyapunov = zeros(1,2*N);
+        for i = 1:2*N
+            Lyapunov(i) = mean(rho_list(end-N_lyapunov:end,i)./...
+                t(end-N_lyapunov:end));
+        end
+
+        % Update Lyapunov list of (a, MLE)
+        MLE_list(counter,1:2) = [a, Lyapunov(1)];
+    end
 
     % Update counter
     counter = counter + 1;
