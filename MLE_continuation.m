@@ -165,12 +165,13 @@ end
 %% Make the MLE vs ecc plot
 
 % Alpha = 3/11 = 0.2727 exponents
-alpha1_ecc = [0, 0.399, 0.533];
+alpha1_ecc = [0, 0.3997, 0.533];
 alpha1_MLE = [0.0082413, 0.1211, 0.16284];
 
 % Alpha = 3/11 = 0.1818 exponents
-alpha2_ecc = [0.533, 0.745];
-alpha2_MLE = [0.0084947, 0.09563];
+alpha2_ecc = [0, 0.533, 0.745];
+alpha2_MLE = [0.0074608, 0.0084947, 0.09563];
+% add ecc = 0.3997 and MLE = 
 
 figure (1)
 plot(alpha1_ecc, alpha1_MLE,'-','LineWidth',2)
