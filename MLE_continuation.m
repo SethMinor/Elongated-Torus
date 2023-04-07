@@ -2,16 +2,16 @@
 clear, clc;%, clf;
 
 % Font size, for plotting
-fs = 16;
+fs = 18;
 
 % Compute Lyapunov exponents as well?
 Lyap_bool = false;
 
 % Initial parameters
-a = 13;
+a = 16.5;
 a0 = a;
 R = 11;
-r = 3;
+r = 2;
 c = sqrt(R^2 - r^2);
 myalpha = r/R;
 
@@ -26,10 +26,10 @@ u2constant = -30;
 
 %% Select a branch of ICs for testing
 % Continuation for-loop
-da = 0.05;
+da = 0.5;
 counter = 1;
 
-for delta_a = 0:da:2 % (a will go from a0 to a0 - last number)
+for delta_a = 0:da:5.5 % (a will go from a0 to a0 - last number)
     % New semi-major axis a
     a = a0 - delta_a;
 
@@ -136,8 +136,10 @@ for delta_a = 0:da:2 % (a will go from a0 to a0 - last number)
         p0 = ones(2*N,1); % Lyapunov, rho_i ICs
         Y0 = [y0; reshape(Q0,[(2*N)^2,1]); p0];
         
+        tic
         [t,y] = ode45('vortex_velocity_lyapunov',timespan, Y0, options,...
             N, q, r, a, R, c, p, cap, theta, Dginv, gr, F);
+        toc
 
         % Roll through 'y_n' solution and store {rho_i} values
         % [rho_1, ..., rho_4] list = y(:, 1 + 2N + (2N)^2 : end)
@@ -153,11 +155,39 @@ for delta_a = 0:da:2 % (a will go from a0 to a0 - last number)
 
         % Update Lyapunov list of (a, MLE)
         MLE_list(counter,1:2) = [a, Lyapunov(1)];
+        fprintf('Counter: %.f and MLE: %f\n',counter,Lyapunov(1));
     end
 
     % Update counter
     counter = counter + 1;
 end
+
+%% Make the MLE vs ecc plot
+
+% Alpha = 3/11 = 0.2727 exponents
+alpha1_ecc = [0, 0.399, 0.533];
+alpha1_MLE = [0.0082413, 0.1211, 0.16284];
+
+% Alpha = 3/11 = 0.1818 exponents
+alpha2_ecc = [0.533, 0.745];
+alpha2_MLE = [0.0084947, 0.09563];
+
+figure (1)
+plot(alpha1_ecc, alpha1_MLE,'-','LineWidth',2)
+hold on
+plot(alpha2_ecc, alpha2_MLE,'-','LineWidth',2)
+plot(alpha1_ecc, alpha1_MLE,'.k','MarkerSize',10)
+plot(alpha2_ecc, alpha2_MLE,'.k','MarkerSize',10)
+hold off
+grid on
+
+xlabel('Eccentricity, $\varepsilon$','Interpreter','latex','FontSize', fs)
+ylabel('MLE, $\lambda_1$','Interpreter','latex','FontSize', fs)
+legend('$\alpha = 0.27$','$\alpha = 0.18$','Interpreter','latex',...
+    'FontSize', fs,'location','northwest')
+
+ax = gca;
+ax.FontSize = fs-1;
 
 
 %% Function definitions
