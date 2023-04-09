@@ -8,10 +8,10 @@ fs = 18;
 Lyap_bool = false;
 
 % Initial parameters
-a = 16.5;
+a = 15;
 a0 = a;
 R = 11;
-r = 2;
+r = 2.31;
 c = sqrt(R^2 - r^2);
 myalpha = r/R;
 
@@ -29,7 +29,7 @@ u2constant = -30;
 da = 0.25;
 counter = 1;
 
-for delta_a = 0:da:5.5 % (a will go from a0 to a0 - last number)
+for delta_a = 0:da:4 % (a will go from a0 to a0 - last number)
     % New semi-major axis a
     a = a0 - delta_a;
 
@@ -172,18 +172,25 @@ alpha1_MLE = [0.0082413, 0.07916, 0.085404, 0.078165, 0.1211, 0.1191, 0.11701, 0
 alpha2_ecc = [0, 0.2917, 0.3997, 0.4750, 0.533, 0.5797, 0.6186, 0.6515, 0.6799, 0.7045, 0.7262, 0.7361, 0.745];
 alpha2_MLE = [0.0074608, 0.0058669, 0.0052082, 0.0060306, 0.0084947, 0.0070855, 0.0085782, 0.0091884, 0.01018, 0.01342, 0.013196, 0.019554, 0.09563];
 
+% Alpha = 0.21 exponents
+alpha3_ecc = [0, 0.2096, 0.2917, 0.3513, 0.3997, 0.4401, 0.4750, 0.5056, 0.5329, 0.5797, 0.6186, 0.6515, 0.6799];
+alpha3_MLE = [0.0056548, 0.0042315, 0.0078868, 0.010472, 0.012174, 0.013114, 0.013777, 0.01423, 0.015689, 0.017453, 0.10612, 0.083915, 0.11612];
+
 figure (1)
 plot(alpha1_ecc, alpha1_MLE,'-','LineWidth',2)
 hold on
+plot(alpha3_ecc, alpha3_MLE,'-','LineWidth',2)
 plot(alpha2_ecc, alpha2_MLE,'-','LineWidth',2)
+
 plot(alpha1_ecc, alpha1_MLE,'.k','MarkerSize',10)
+plot(alpha3_ecc, alpha3_MLE,'.k','MarkerSize',10)
 plot(alpha2_ecc, alpha2_MLE,'.k','MarkerSize',10)
 hold off
 grid on
 
 xlabel('Eccentricity, $\varepsilon$','Interpreter','latex','FontSize', fs)
 ylabel('MLE, $\lambda_1$','Interpreter','latex','FontSize', fs)
-legend('$\alpha = 0.27$','$\alpha = 0.18$','Interpreter','latex',...
+legend('$\alpha = 0.27$', '$\alpha = 0.21$', '$\alpha = 0.18$','Interpreter','latex',...
     'FontSize', fs,'location','northwest')
 
 ax = gca;
