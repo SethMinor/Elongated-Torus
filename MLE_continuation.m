@@ -8,10 +8,10 @@ fs = 18;
 Lyap_bool = false;
 
 % Initial parameters
-a = 14.7287;
+a = 11.015;
 a0 = a;
 R = 11;
-r = 2.31;
+r = 3;
 c = sqrt(R^2 - r^2);
 myalpha = r/R;
 
@@ -29,7 +29,7 @@ u2constant = -30;
 da = 0.25;
 counter = 1;
 
-for delta_a = 0:da:2.75 % (a will go from a0 to a0 - last number)
+for delta_a = 0:da:0.015 % (a will go from a0 to a0 - last number)
     % New semi-major axis a
     a = a0 - delta_a;
 
@@ -165,8 +165,8 @@ end
 %% Make the MLE vs ecc plot
 
 % Alpha = 3/11 = 0.2727 exponents
-alpha1_ecc = [0, 0.2096, 0.2917, 0.3513, 0.3997, 0.4401, 0.4750, 0.5056, 0.533];
-alpha1_MLE = [0.0082413, 0.07916, 0.085404, 0.078165, 0.1211, 0.1191, 0.11701, 0.12315, 0.16284];
+alpha1_ecc = [0, 0.0522, 0.100, 0.2096, 0.2917, 0.3513, 0.3997, 0.4401, 0.4750, 0.5056, 0.533];
+alpha1_MLE = [0.0082413, 0.011189, 0.12154, 0.07916, 0.085404, 0.078165, 0.1211, 0.1191, 0.11701, 0.12315, 0.16284];
 
 % Alpha = 0.1818 exponents
 alpha2_ecc = [0, 0.2096, 0.2917, 0.3997, 0.4750, 0.533, 0.5797, 0.6186, 0.6515, 0.6799, 0.7045, 0.7262, 0.7361, 0.745];
@@ -196,7 +196,7 @@ grid on
 
 xlabel('Eccentricity, $\varepsilon$','Interpreter','latex','FontSize', fs)
 ylabel('MLE, $\lambda_1$','Interpreter','latex','FontSize', fs)
-legend('$\alpha = 0.27$', '$\alpha = 0.21$', '$\alpha = 0.18$','Interpreter','latex',...
+legend('$\alpha = 0.27$', '$\alpha = 0.24$', '$\alpha = 0.21$', '$\alpha = 0.18$','Interpreter','latex',...
     'FontSize', fs,'location','northwest')
 
 ax = gca;
