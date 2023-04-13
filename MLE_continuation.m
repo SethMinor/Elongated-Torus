@@ -2,7 +2,7 @@
 clear, clc;%, clf;
 
 % Font size, for plotting
-fs = 18;
+fs = 20;
 
 % Compute Lyapunov exponents as well?
 Lyap_bool = false;
@@ -197,7 +197,7 @@ grid on
 xlabel('Eccentricity, $\varepsilon$','Interpreter','latex','FontSize', fs)
 ylabel('MLE, $\lambda_1$','Interpreter','latex','FontSize', fs)
 legend('$\alpha = 0.27$', '$\alpha = 0.24$', '$\alpha = 0.21$', '$\alpha = 0.18$','Interpreter','latex',...
-    'FontSize', fs,'location','northwest')
+    'FontSize', fs-2,'location','northwest')
 
 ax = gca;
 ax.FontSize = fs-1;
