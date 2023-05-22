@@ -2,7 +2,7 @@
 clear, clc, clf;
 
 % Font size, for plotting
-fs = 10;
+fs = 18;
 
 % Parameters
 a = 13;
@@ -27,23 +27,6 @@ phi_raw = [-flip(phi_raw(2:end)); phi_raw];
 % Quick plot to verify isothermal solutions look good
 v0 =@(theta) 2*r*atan(sqrt((R-r)/(R+r))*tan(theta/2));
 
-% Numerical isothermal coordinates
-figure (1)
-subplot(2,1,1)
-plot(theta_raw, real(phi_raw))
-hold on
-plot(theta_raw, imag(phi_raw))
-plot(theta_raw, -v0(theta_raw)/c,'--k')
-xline(pi,'-')
-xline(-pi,'-')
-hold off
-grid on
-
-title('Numerical Isothermal Coordinates','Interpreter','latex','FontSize', fs+2)
-xlabel('$\theta$, poloidal coordinate','Interpreter','latex','FontSize', fs)
-ylabel('$\phi = f(\theta)$ solution','Interpreter','latex','FontSize', fs)
-legend('Re$[f(\theta)]$','Im$[f(\theta)]$','$(-v_0)/c$','Interpreter','latex','FontSize', fs)
-
 % Define (phi,theta) to (u,v) map
 vhelper = fit(theta_raw, imag(phi_raw), 'cubicinterp'); % phi = f(theta)
 u =@(phi) c*phi;
@@ -52,17 +35,6 @@ v =@(theta) -c*vhelper(theta);
 % Check derivative of numerical solution
 D1 = differentiate(vhelper, theta_raw);
 Df = fit(theta_raw, D1, 'cubicinterp');
-
-subplot(2,1,2)
-gamma =@(phi,theta) sqrt((a+r*cos(theta)).^2.*sin(phi).^2 + (R+r*cos(theta)).^2.*cos(phi).^2);
-plot(theta_raw, abs(imag(-1i*r./gamma(phi_raw,theta_raw)) -  Df(theta_raw)),'.-')
-grid on
-set(gca, 'YScale', 'log')
-
-title("Residual, max $=$ "+max(abs(imag(-1i*r./gamma(phi_raw,theta_raw)) -  Df(theta_raw))),'Interpreter','latex','FontSize', fs+2)
-xlabel('$\theta$, poloidal coordinate','Interpreter','latex','FontSize', fs)
-ylabel("RHS - $f'(\theta)$",'Interpreter','latex','FontSize', fs)
-legend('Im','Interpreter','latex','FontSize', fs)
 
 % Conformal map
 w =@(phi,theta) u(phi) + 1i*v(theta);
@@ -108,35 +80,36 @@ N = length(q); % keeping track of number of vortices
 
 % ode45 with events function
 t0 = 0;
-tf = 25000;
+tf = 30000;
 timespan = [t0, tf];
 options = odeset('RelTol', 1e-11, 'AbsTol', 1e-11, 'Events', @EventsFcn);
 
 % Create list of isosurface ICs (u2 = constant)
 % 2 x N matrix of complex numbers (maybe N=5 or 6ish)
 % Vortex 1 ICs (positive)
-orbit_list(1,:) = [-3.24749, -2.49752, -2.14838, -3.427, 0.0525085, 0.0525085, -1.14749, -1.52228, -1.44749,...
-	-5.99332, -4.95324, -5.04749, -6.31649, -2.94749, -2.34749, -1.74749, -2.94058,...
-	2.20402, 2.15251, -0.547492, 1.02132, 1.4894, 3.65251, 7.00212, 6.67039, 5.45251, 5.15251,...
-	1.85251, 2.17401, 2.40389, 1.25251, 5.26865, 4.88566, 4.56937, 5.15251,...
-	8.06429, 7.01917, 6.99138, 8.10138, -8.04749, -6.27752, -6.20249, -8.23389,...
-	-2.34749, -3.98657, -3.93271, -5.39858, -0.847492, -1.74749, -1.33159, -0.247492]...
-    + 1i*[-0.709783, -6.42478, -7.42478, -8.92478, -3.72478, -7.81111, -4.65016, -5.52478, -6.3803,...
-	2.87522, 0.175222, -2.82478, -7.32478, -0.124778, -3.72478, -6.91623, -7.62478,...
-	-6.12478, -7.92478, -8.82478, -4.62478, -6.42478, -1.72557, 4.37522, 3.17522, 0.0334414, -3.81826,...
-	-0.124778, -2.22478, -5.22478, -9.25687, 1.37522, -0.424778, -3.72478, -6.79009,...
-	7.37522, 4.07522, -4.62478, -8.82478, 7.24806, 2.27522, -3.42478, -8.82478,...
-	0.0747632, -0.124778, -3.12478, -7.92478, -3.72478, -4.85711, -6.72478, -7.77042];
+orbit_list(1,:) = [0.352508, 0.352508, 2.45251, 2.45251, 2.25251, -2.25251, 2.15251, -2.15251,...
+	1.25251, 0.352508, -5.32283, -2.67955, -5.23302, 5.32368, 2.45251, 5.19891,...
+	3.35251, 2.91812, 2.45251, 0.0525085, 0.0525085, -0.547492, -2.64749, -3.12493,...
+	2.45251, 3.82508, -0.247492, 0.0525085, -2.34749, -3.84749, 3.05251, 0.352508, -0.847492,...
+	1.25251, -1.44749, -3.84749, 5.24173, 4.89834, 5.01941, 5.39979, -5.14663, -4.89729, -4.94494, -5.28658,...
+    3.8475]...
+    + 1i*[8.59535, 2.57522, -4.17478, -4.17478, -4.97819, -4.97819, -5.72478, -5.72478,...
+	2.87522, 2.41657, 7.37522, -2.52478, -8.22478, 7.37522, -2.52478, -7.62478,...
+	4.5782, -0.124778, -3.32573, 5.72388, 1.26486, -1.92478, 7.07522, 0.475222,...
+	7.07522, -4.02478, 5.87522, -2.89081, 6.47522, -4.32478, 7.37522, 6.94037, 5.87522,...
+	-2.62336, -2.68035, -3.72478, 8.27522, 8.27522, -6.72478, -7.92478, 8.27522, 7.67522, -5.82478, -7.62478,...
+    -3.7248];
 
 % Vortex 2 ICs (negative)
-orbit_list(2,:) = [0, 0,0,0, 0,0, 0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,0,...
-	0,0,0,0,0,0, 0,0,0,0,0,0, 0,0,0,0,0,0]...
-    + 1i*[7.07522, 8.57522, 6.57522, 8.07522, 7.61146, 4.07522, 7.07522, 5.87522, 5.27522,...
-	7.97522, 5.27522, 0.98804, -3.12478, 8.09452, 5.384, 2.57522, 0.475222,...
-	8.27522, 6.24491, 0.882667, 7.37522, 5.57522, 5.27522, 7.97522, 5.27522, 2.87522, 0.175222,...
-	8.99847, 6.77522, 3.77522, 0.175222, 6.77522, 4.37522, 1.37522, -1.32478,...
-	7.97522, 5.27522, -4.32478, -7.62478, 8.27522, 4.37522, -2.22478, -8.52478,...
-	8.87522, 6.77522, 3.17522, -2.22478, 7.24541, 5.57522, 3.77522, 2.57522];
+orbit_list(2,:) = [0,0,0, 0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0, 0,0,0, 0,0,0, ...
+	0,0,0, 0,0,0, 0,0,0,0, 0,0,0,0,...
+    0, 0,0,0, 0,0]...
+    + 1i*[3.17522, -1.4753, -9.12478, -9.12478, -1.22478, -1.22478, 1.67385, 1.67385,...
+	-0.955982, -1.62478, 8.27522, 0.175222, -7.02478, 8.27522, 0.425142, -6.72478,...
+	1.97522, -2.52478, -7.92478, 1.07522, -2.82478, -6.84328, 2.8801, -1.32478,...
+	2.75726, -7.32478, 1.19285, -8.22478, 2.29367, -7.77856, 3.36339, 1.97522,...
+	1.27455, -7.62478, -7.62478, -6.75811, 7.07522, 6.17522, -8.82478, -8.82478, 6.77522, 5.87522, -7.32478, -9.12478,...
+    -6.7581];
 
 % REMEMBER that shown surfaces are just slices of full 3D volume
 % So ICs on the shown surface may 4D rotate into u2 =/= 0
@@ -182,65 +155,69 @@ for IC_number = 1:length(orbit_list)
         Theta_e = [theta(Ve(:,1)), theta(Ve(:,2))];
         
         % Poincare section
-        figure (2)
-        sgtitle("Poincare Section $(u_2 = 0)$, Energy $E_0 =$ "+E0,'Interpreter','latex')
-        subplot (2,2,1)
-        plot(Ue(:,1), Ue(:,2),'.','MarkerSize',3)
-        xlabel('$u_1$','Interpreter','latex','FontSize',fs)
-        ylabel('$u_2 = 0$','Interpreter','latex','FontSize',fs)
-        xlim([-pi*c/2, pi*c/2])
-        ylim([-pi*c/2, pi*c/2])
-        grid on
-        hold on
+        figure (1)
+%         sgtitle("Poincare Section $(u_2 = 0)$, Energy $E_0 =$ "+E0,'Interpreter','latex')
+%         subplot (2,2,1)
+%         plot(Ue(:,1), Ue(:,2),'.','MarkerSize',3)
+%         xlabel('$u_1$','Interpreter','latex','FontSize',fs)
+%         ylabel('$u_2 = 0$','Interpreter','latex','FontSize',fs)
+%         xlim([-pi*c/2, pi*c/2])
+%         ylim([-pi*c/2, pi*c/2])
+%         grid on
+%         hold on
         
-        subplot (2,2,2)
-        plot(Ve(:,1), Ve(:,2),'.','MarkerSize',3)
-        xlabel('$v_1$','Interpreter','latex','FontSize',fs)
-        ylabel('$v_2$','Interpreter','latex','FontSize',fs)
-        xlim([c*gl, c*gr])
-        ylim([c*gl, c*gr])
-        grid on
-        hold on
+%         subplot (2,2,2)
+%         plot(Ve(:,1), Ve(:,2),'.','MarkerSize',3)
+%         xlabel('$v_1$','Interpreter','latex','FontSize',fs)
+%         ylabel('$v_2$','Interpreter','latex','FontSize',fs)
+%         xlim([c*gl, c*gr])
+%         ylim([c*gl, c*gr])
+%         grid on
+%         hold on
 
-        subplot (2,2,3)
-        plot(Ue(:,1), Ve(:,1),'.','MarkerSize',3)
+        %subplot (2,2,3)
+        plot(Ue(:,1), Ve(:,1),'.','MarkerSize',5)
         xlabel('$u_1$','Interpreter','latex','FontSize',fs)
         ylabel('$v_1$','Interpreter','latex','FontSize',fs)
-        xlim([-pi*c/2, pi*c/2])
+        xlim([-pi*c/4, pi*c/4])
         ylim([c*gl, c*gr])
-        grid on
+        ax = gca;
+        ax.FontSize = fs - 3;
+        %grid on
         hold on
 
-        subplot (2,2,4)
-        plot(Ue(:,2), Ve(:,2),'.','MarkerSize',3)
-        xlabel('$u_2 = 0$','Interpreter','latex','FontSize',fs)
-        ylabel('$v_2$','Interpreter','latex','FontSize',fs)
-        xlim([-pi*c/2, pi*c/2])
-        ylim([c*gl, c*gr])
-        grid on
-        hold on
+%         subplot (2,2,4)
+%         plot(Ue(:,2), Ve(:,2),'.','MarkerSize',3)
+%         xlabel('$u_2 = 0$','Interpreter','latex','FontSize',fs)
+%         ylabel('$v_2$','Interpreter','latex','FontSize',fs)
+%         xlim([-pi*c/2, pi*c/2])
+%         ylim([c*gl, c*gr])
+%         grid on
+%         hold on
 
-        figure (3)
-        plot3(Ue(:,1), Ve(:,1), Ve(:,2),'.','MarkerSize',3)
-        xlabel('$u_1$','Interpreter','latex','FontSize',fs)
-        ylabel('$v_1$','Interpreter','latex','FontSize',fs)
-        zlabel('$v_2$','Interpreter','latex','FontSize',fs)
-        xlim([-pi*c, pi*c])
-        ylim([c*gl, c*gr])
-        zlim([c*gl, c*gr])
-        title("Last plotted: $w_1 =$ "+u1_0+"+("+v1_0+")$i$, with "+"$w_2 =$ "+u2_0+"+("+v2_0+")$i$",...
-            'Interpreter','latex','FontSize',fs)
-        grid on
-        hold on
-
-        figure (5)
-        plot(Ue(:,1), Ve(:,1),'.','MarkerSize',4)
-        title("Poincare Section $(u_2 = 0)$, Energy $E_0=$ "+E0,'Interpreter','latex')
-        xlabel('$u_1$','Interpreter','latex','FontSize',fs)
-        ylabel('$v_1$','Interpreter','latex','FontSize',fs)
-        xlim([-c*pi/2, c*pi/2])
-        ylim([c*gl, c*gr])
-        hold on
+%         figure (3)
+%         plot3(Ue(:,1), Ve(:,1), Ve(:,2),'.','MarkerSize',3)
+%         xlabel('$u_1$','Interpreter','latex','FontSize',fs)
+%         ylabel('$v_1$','Interpreter','latex','FontSize',fs)
+%         zlabel('$v_2$','Interpreter','latex','FontSize',fs)
+%         xlim([-pi*c, pi*c])
+%         ylim([c*gl, c*gr])
+%         zlim([c*gl, c*gr])
+%         title("Last plotted: $w_1 =$ "+u1_0+"+("+v1_0+")$i$, with "+"$w_2 =$ "+u2_0+"+("+v2_0+")$i$",...
+%             'Interpreter','latex','FontSize',fs)
+%         grid on
+%         hold on
+% 
+%         figure (5)
+%         plot(Ue(:,1), Ve(:,1),'.','MarkerSize',4)
+%         title("Poincare Section $(u_2 = 0)$, Energy $E_0=$ "+E0,'Interpreter','latex')
+%         xlabel('$u_1$','Interpreter','latex','FontSize',fs)
+%         ylabel('$v_1$','Interpreter','latex','FontSize',fs)
+%         xlim([-c*pi/2, c*pi/2])
+%         ylim([c*gl, c*gr])
+%         hold on
+        
+        fprintf('Just printed orbit %.f\n',IC_number)
 
         % Export images to folder
         if export_bool == true
@@ -276,15 +253,9 @@ function [position,isterminal,direction] = EventsFcn(~,y)
   V = UVwrap(V, [-c*gr, c*gr]);
 
   % Poincare section
-  %position = V(1) + V(2); % theta1 = -theta2
-  %position = U(1) - U(2); % phi1 = phi2
-  %position = V(1) + V(2) + U(1) + U(2); % Hyper-plane (TRY)
-  %position = V(1) - pi*r/2; %- c*gr/2; % (TRY)
-  %position = V(1) + V(2) + sin(V(1) + V(2)); % Implicit line in R^3
-  %position = V(2); % Looks rad but has overlap
   position = U(2);
 
   isterminal = 0;  % Halt integration
   % Trying direction = +/- 1 seems to help with overlapping (?)
-  direction = -1;   % 0 = the zero can be approached from either direction
+  direction = 1;   % 0 = the zero can be approached from either direction
 end
