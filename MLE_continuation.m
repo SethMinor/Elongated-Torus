@@ -1,15 +1,17 @@
 %% Branching for MLE plot
+% This script computes a branch of points under torus deformation.
+% Also allows for computation of MLE using branch points as ICs.
 clear, clc;%, clf;
 
 % Font size, for plotting
 fs = 20;
 
-% Compute Lyapunov exponents as well?
+% Compute Lyapunov exponents of solution branch?
 Lyap_bool = false;
 
 % Initial parameters
-a = 11.1529;
-a0 = a;
+a = 13;
+a0 = a; % Initial semi-major axis
 R = 11;
 r = 3;
 c = sqrt(R^2 - r^2);
@@ -26,10 +28,10 @@ u2constant = -30;
 
 %% Select a branch of ICs for testing
 % Continuation for-loop
-da = 0.25;
+da = 0.25; % delta-a step (semi-major axis)
 counter = 1;
 
-for delta_a = 0:da:0.1529 % (a will go from a0 to a0 - last number)
+for delta_a = 0:da:2 % ('a' will go from a0 to a0-2)
     % New semi-major axis a
     a = a0 - delta_a;
 
@@ -122,9 +124,9 @@ for delta_a = 0:da:0.1529 % (a will go from a0 to a0 - last number)
         % Integrate the equations of motion
         % Set total time and tolerances
         t0 = 0;
-        tf = 500;
+        tf = 500; % LONGER TIME ---> more accurate MLE
         timespan = [t0, tf];
-        options = odeset('RelTol', 1e-11, 'AbsTol', 1e-11);
+        options = odeset('RelTol', 1e-9, 'AbsTol', 1e-9);
         
         % Define the RHS
         F =@(W) vortex_velocity_v2(0,[W(1), W(2), W(3), W(4)],0,N,q,r,a,...
@@ -146,7 +148,8 @@ for delta_a = 0:da:0.1529 % (a will go from a0 to a0 - last number)
         rho_list = y(:, 1+2*N+(2*N)^2 : end);
         
         % Compute the full spectrum
-        N_lyapunov = 100; % number to back-average
+        N_lyapunov = 100; % number to back-average 
+        % --- ALTERNATIVELY, could do other asymptotic estimation of MLE ---
         Lyapunov = zeros(1,2*N);
         for i = 1:2*N
             Lyapunov(i) = mean(rho_list(end-N_lyapunov:end,i)./...
