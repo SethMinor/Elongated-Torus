@@ -126,15 +126,15 @@ for delta_a = 0:da:2 % ('a' will go from a0 to a0-2)
     counter = counter + 1;
 end
 
-%% Make the MLE vs eccentricity plot
-
-figure (1)
-plot(sqrt(1 - (R./MLE_list(:,1)).^2), MLE_list(:,2),'-','LineWidth',2)
-grid on
-xlabel('Eccentricity, $\varepsilon$','Interpreter','latex','FontSize', fs)
-ylabel('MLE, $\lambda_1$','Interpreter','latex','FontSize', fs)
-ax = gca;
-ax.FontSize = fs - 1;
+%%% Make the MLE vs eccentricity plot
+%
+%figure (1)
+%plot(sqrt(1 - (R./MLE_list(:,1)).^2), MLE_list(:,2),'-','LineWidth',2)
+%grid on
+%xlabel('Eccentricity, $\varepsilon$','Interpreter','latex','FontSize', fs)
+%ylabel('MLE, $\lambda_1$','Interpreter','latex','FontSize', fs)
+%ax = gca;
+%ax.FontSize = fs - 1;
 
 
 %% Function definitions
