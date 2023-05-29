@@ -40,7 +40,7 @@ theta_span = [0, pi];
 q = [1, -1];   % vector of vortex charges
 N = length(q); % keeping track of number of vortices
 
-for delta_a = 0:da:2 % ('a' will go from a0 to a0-2)
+for delta_a = 0:da:1 % ('a' will go from a0 to a0-2)
     % New semi-major axis a
     a = a0 - delta_a;
 
